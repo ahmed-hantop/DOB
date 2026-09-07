@@ -5,8 +5,8 @@ from models import Driver, User
 from extensions import db, mail, limiter
 from flask_mail import Message
 from werkzeug.security import generate_password_hash
-from utils.passwords import verify_password
 from utils.email_utils import send_password_change_email
+from utils.passwords import verify_password_hash
 from forms.common import ChangePasswordForm, OpsCoordinatorOffboardingForm
 from services import offboarding_workflow
 from services.rbac import require_permission, user_can_access_dashboard, user_has_permission
@@ -217,7 +217,7 @@ def change_password():
     new_password = form.new_password.data
     confirm_password = form.confirm_password.data
 
-    if not verify_password(current_user.password, form.current_password.data):
+    if not verify_password_hash(current_user.password, form.current_password.data):
         flash("Current password is incorrect.", "danger")
         return redirect(url_for("ops_coordinator.dashboard_ops_coordinator"))
 

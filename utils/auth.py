@@ -1,6 +1,7 @@
 from functools import wraps
 from flask import abort
 from flask_login import current_user
+from services.rbac import user_has_role
 
 
 def require_roles(*roles):
@@ -10,7 +11,7 @@ def require_roles(*roles):
         def wrapper(*args, **kwargs):
             if not current_user.is_authenticated:
                 abort(401)
-            if roles and current_user.role not in roles:
+            if roles and not user_has_role(current_user, *roles):
                 abort(403)
             return fn(*args, **kwargs)
         return wrapper
@@ -24,7 +25,7 @@ def require_roles_or_owner(*roles, owner_loader=None, owner_attr="id"):
         def wrapper(*args, **kwargs):
             if not current_user.is_authenticated:
                 abort(401)
-            if roles and current_user.role in roles:
+            if roles and user_has_role(current_user, *roles):
                 return fn(*args, **kwargs)
             if owner_loader:
                 resource = owner_loader(*args, **kwargs)

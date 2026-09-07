@@ -155,6 +155,7 @@ class PublicRegisterForm(FlaskForm):
     iqaama_expiry_date = DateField("Iqama Expiry", validators=[Optional()], format="%Y-%m-%d")
     nationality = StringField("Nationality", validators=[Optional(), Length(max=100)])
     city = StringField("City", validators=[Optional(), Length(max=100)])
+    address = TextAreaField("Address", validators=[Optional(), Length(max=1000)])
     previous_sponsor_number = StringField("Previous Sponsor Number", validators=[Optional(), Length(max=50)])
     saudi_driving_license = SelectField(
         "Saudi Driving License",

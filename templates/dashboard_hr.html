@@ -163,6 +163,13 @@
         <p id="qiwaNotApplicable" class="text-secondary small mb-3" style="display:none;">{{ tr('Qiwa contracts only apply to Sponsor-type drivers.', 'عقود قوى تنطبق فقط على السائقين من نوع الكفيل.') }}</p>
         <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="company_contract_created" value="1" id="companyCreated" checked><label class="form-check-label" for="companyCreated">{{ tr('Company Contract Signed / Uploaded', 'تم توقيع / رفع عقد الشركة') }}</label></div>
         <label class="form-label">{{ tr('Other HR Documents (optional)', 'مستندات الموارد البشرية الأخرى (اختياري)') }}</label><input type="file" class="form-control mb-3" name="other_document_files" accept=".jpg,.jpeg,.png,.pdf" multiple>
+        <hr class="my-3">
+        <label class="form-label">{{ tr('Address (optional)', 'العنوان (اختياري)') }}</label>
+        <textarea class="form-control mb-3" name="address" id="hrApproveAddress" rows="2" maxlength="1000"></textarea>
+        <div class="fw-semibold mb-2">{{ tr('Bank Details', 'التفاصيل المصرفية') }} <span class="text-danger">*</span></div>
+        <label class="form-label">{{ tr('Bank Name', 'اسم البنك') }}</label><input type="text" class="form-control mb-2" name="bank_name" id="hrApproveBankName" required>
+        <label class="form-label">{{ tr('IBAN / Account Number', 'الآيبان / رقم الحساب') }}</label><input type="text" class="form-control mb-2" name="account_number" id="hrApproveAccountNumber" required>
+        <label class="form-label">{{ tr('STC Pay Number', 'رقم STC Pay') }}</label><input type="text" class="form-control mb-3" name="stc_pay_number" id="hrApproveStcPay" required>
         <div id="sponsorshipTransferGroup">
           <label class="form-label">{{ tr('Sponsorship Transfer Status', 'حالة نقل الكفالة') }}</label>
           <select class="form-select" name="sponsorship_transfer_status"><option value="Pending">{{ tr('Pending', 'معلق') }}</option><option value="Transferred">{{ tr('Transferred', 'تم النقل') }}</option><option value="Completed">{{ tr('Completed', 'مكتمل') }}</option><option value="Not Required">{{ tr('Not Required', 'غير مطلوب') }}</option></select>
@@ -209,6 +216,15 @@
           <select class="form-select mb-3" name="sponsorship_transfer_status"><option value="Transferred">{{ tr('Transferred', 'تم النقل') }}</option></select>
           <label class="form-label">{{ tr('Transfer Proof', 'إثبات النقل') }}</label>
           <input type="file" class="form-control" name="sponsorship_transfer_proof" accept=".jpg,.jpeg,.png,.pdf">
+        </div>
+
+        <hr class="my-3">
+        <div class="fw-semibold mb-1">{{ tr('Driver Kit', 'مستلزمات السائق') }} <span class="text-danger">*</span></div>
+        <div class="text-secondary small mb-2">{{ tr('Tick each Shirt and Bag issued (one per assigned platform). Driver Card is optional.', 'ضع علامة على كل قميص وحقيبة تم تسليمها (واحدة لكل منصة). بطاقة السائق اختيارية.') }}</div>
+        <div id="hrFinalKitRows"></div>
+        <div class="form-check mb-1">
+          <input class="form-check-input" type="checkbox" name="issue_driver_card" value="1" id="hrFinalDriverCard">
+          <label class="form-check-label" for="hrFinalDriverCard">{{ tr('Driver Card issued', 'تم تسليم بطاقة السائق') }}</label>
         </div>
       </div>
       <div class="modal-footer">
@@ -336,6 +352,11 @@
         var manualContractForm = document.getElementById('hrManualContractForm');
         if (manualContractForm) manualContractForm.action = '/dashboard/hr/add_contract_manual/' + d.id;
         document.getElementById('hrApproveForm').action = '/dashboard/hr/approve_driver/' + d.id;
+        var _sv = function (id, val) { var el = document.getElementById(id); if (el) el.value = val || ''; };
+        _sv('hrApproveAddress', d.address);
+        _sv('hrApproveBankName', d.bank_name);
+        _sv('hrApproveAccountNumber', d.account_number);
+        _sv('hrApproveStcPay', d.stc_pay_number);
         renderGeneratedContracts(d);
         DobsUI.openModal('hrApproveModal');
       } else if (card.dataset.stage === 'HR Final') {
@@ -343,6 +364,23 @@
         document.getElementById('hrFinalNoQiwa').style.display = withQiwa ? 'none' : '';
         document.getElementById('hrFinalWithQiwa').style.display = withQiwa ? '' : 'none';
         document.getElementById('hrFinalForm').action = withQiwa ? '/dashboard/hr/complete_transfer/' + d.id : '/dashboard/hr/complete_driver/' + d.id;
+
+        var kitRows = document.getElementById('hrFinalKitRows');
+        var platforms = d.assigned_platforms || [];
+        if (!platforms.length) {
+          kitRows.innerHTML = '<div class="text-danger small mb-2">' +
+            escapeHtml(({{ tr('No assigned platform yet — assign a platform ID before completing HR Final.', 'لا توجد منصة معينة بعد — عيّن رقم منصة قبل إنهاء المرحلة النهائية.') | tojson }})) + '</div>';
+        } else {
+          kitRows.innerHTML = platforms.map(function (p) {
+            var pid = p.id, pn = escapeHtml(p.name || ('#' + p.id));
+            return '<div class="border rounded p-2 mb-2">' +
+              '<div class="fw-semibold small mb-1">' + pn + '</div>' +
+              '<div class="form-check"><input class="form-check-input" type="checkbox" value="1" name="issue_shirt_' + pid + '" id="shirt_' + pid + '"><label class="form-check-label" for="shirt_' + pid + '">' + ({{ tr('Shirt issued', 'تم تسليم القميص') | tojson }}) + '</label></div>' +
+              '<div class="form-check"><input class="form-check-input" type="checkbox" value="1" name="issue_bag_' + pid + '" id="bag_' + pid + '"><label class="form-check-label" for="bag_' + pid + '">' + ({{ tr('Bag issued', 'تم تسليم الحقيبة') | tojson }}) + '</label></div>' +
+              '</div>';
+          }).join('');
+        }
+        document.getElementById('hrFinalDriverCard').checked = false;
         DobsUI.openModal('hrFinalModal');
       }
     });

@@ -1,0 +1,996 @@
+<html dir="rtl" lang="en" class="no-js no-svg">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Registration</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='Home_09_Onepage_files/logo1.png') }}">  
+    <link rel="stylesheet" href="/static/styles.css">
+    <style> 
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            direction: rtl;
+        }
+        label {
+            font-weight: 600;
+            margin-top: 8px;
+            color: #2c3e50;
+            font-size: 15px;
+            text-align: right;
+        }
+        input, select, button {
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 2px solid #cbd5e1;
+            font-size: 15px;
+            transition: all 0.3s;
+            text-align: right;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #602273;
+            box-shadow: 0 0 0 3px rgba(96,34,115,0.1);
+        }
+        button {
+            background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(39,174,96,0.3);
+            text-align: center;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(39,174,96,0.4);
+        }
+        .flash-message {
+            padding: 14px 16px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            color: #fff;
+            font-size: 15px;
+        }
+        .flash-message.success { background-color: #27ae60; border: 2px solid #1e8449; }
+        .flash-message.error { background-color: #e74c3c; border: 2px solid #c0392b; }
+        .flash-message.info { background-color: #3498db; border: 2px solid #2874a6; }
+    </style>
+</head>
+<body class="page-template page-template-elementor_header_footer page page-id-2081 wp-custom-logo theme-fastrans woocommerce-js ehf-template-fastrans ehf-stylesheet-fastrans menu-layer elementor-default elementor-template-full-width elementor-kit-5 elementor-page elementor-page-2081 e--ua-blink e--ua-edge e--ua-webkit mobile_menu_overlay_on" data-elementor-device-mode="none">
+  
+
+
+
+
+    
+        <title>DOBS</title>
+        <link rel="stylesheet" href="https://themexriver.com/wp/fastrans/fastrans/wp-content/plugins/elementor/assets/css/conditionals/dialog.min.css?ver=3.25.6">
+        <link rel="stylesheet" href="https://themexriver.com/wp/fastrans/fastrans/wp-content/plugins/elementor/assets/lib/swiper/v8/css/swiper.min.css?ver=8.4.5">
+    
+
+
+
+
+<link rel="stylesheet" id="bootstrap-css" href="static/Home_09_Onepage_files/bootstrap.min.css" type="text/css" media="all">
+<link rel="stylesheet" id="fastrans-updated-style-css" href="static/Home_09_Onepage_files/updated-style.css" type="text/css" media="all">
+
+
+<link rel="stylesheet" id="fastrans-custom-css" href="static/Home_09_Onepage_files/custom.css" type="text/css" media="all">
+<link rel="stylesheet" id="fastrans-responsive-css" href="static/Home_09_Onepage_files/responsive.css" type="text/css" media="all">
+<link rel="stylesheet" id="fastrans-transport-css" href="static/Home_09_Onepage_files/transport.css" type="text/css" media="all">
+<link rel="stylesheet" id="home_v7-css" href="static/Home_09_Onepage_files/home_v7.css" type="text/css" media="all">
+<link rel="stylesheet" id="transport-logistric-css" href="static/Home_09_Onepage_files/transport-logistric.css" type="text/css" media="all">
+<link rel="stylesheet" id="transport-responsive-css" href="static/Home_09_Onepage_files/transport-responsive.css" type="text/css" media="all">
+<link rel="stylesheet" id="home_v10-css" href="static/Home_09_Onepage_files/home_v10.css" type="text/css" media="all">
+<link rel="stylesheet" id="home_v11-css" href="static/Home_09_Onepage_files/home_v11.css" type="text/css" media="all">
+<link rel="stylesheet" id="fastrans-theme-fonts-css" href="static/Home_09_Onepage_files/css(2)" type="text/css" media="all">
+<link rel="stylesheet" id="hfe-icons-list-css" href="static/Home_09_Onepage_files/widget-icon-list.min.css" type="text/css" media="all">
+<link rel="stylesheet" id="hfe-social-icons-css" href="static/Home_09_Onepage_files/widget-social-icons.min.css" type="text/css" media="all">
+<link rel="stylesheet" id="hfe-social-share-icons-brands-css" href="static/Home_09_Onepage_files/brands.css" type="text/css" media="all">
+<link rel="stylesheet" id="hfe-social-share-icons-fontawesome-css" href="static/Home_09_Onepage_files/fontawesome.css" type="text/css" media="all">
+<link rel="stylesheet" id="hfe-nav-menu-icons-css" href="static/Home_09_Onepage_files/solid.css" type="text/css" media="all">
+<link rel="stylesheet" id="google-fonts-1-css" href="static/Home_09_Onepage_files/css(3)" type="text/css" media="all">
+<link rel="stylesheet" id="elementor-icons-shared-0-css" href="static/Home_09_Onepage_files/fontawesome.min.css" type="text/css" media="all">
+<link rel="stylesheet" id="elementor-icons-fa-brands-css" href="static/Home_09_Onepage_files/brands.min.css" type="text/css" media="all">
+
+
+<script type="text/javascript" src="static/Home_09_Onepage_files/jquery.min.js.download" id="jquery-core-js"></script>
+<script type="text/javascript" src="static/Home_09_Onepage_files/jquery-migrate.min.js.download" id="jquery-migrate-js"></script>
+<script type="text/javascript" src="static/Home_09_Onepage_files/jquery.blockUI.min.js.download" id="jquery-blockui-js" defer="defer" data-wp-strategy="defer"></script>
+<script type="text/javascript" id="wc-add-to-cart-js-extra">
+/* <![CDATA[ */
+var wc_add_to_cart_params = {"ajax_url":"\/wp\/fastrans\/fastrans\/wp-admin\/admin-ajax.php","wc_ajax_url":"\/wp\/fastrans\/fastrans\/?wc-ajax=%%endpoint%%","i18n_view_cart":"View cart","cart_url":"https:\/\/themexriver.com\/wp\/fastrans\/fastrans\/cart\/","is_cart":"","cart_redirect_after_add":"no"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="static/Home_09_Onepage_files/add-to-cart.min.js.download" id="wc-add-to-cart-js" defer="defer" data-wp-strategy="defer"></script>
+<script type="text/javascript" src="static/Home_09_Onepage_files/js.cookie.min.js.download" id="js-cookie-js" defer="defer" data-wp-strategy="defer"></script>
+<script type="text/javascript" id="woocommerce-js-extra">
+/* <![CDATA[ */
+var woocommerce_params = {"ajax_url":"\/wp\/fastrans\/fastrans\/wp-admin\/admin-ajax.php","wc_ajax_url":"\/wp\/fastrans\/fastrans\/?wc-ajax=%%endpoint%%"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="static/Home_09_Onepage_files/woocommerce.min.js.download" id="woocommerce-js" defer="defer" data-wp-strategy="defer"></script>
+<script type="text/javascript" src="static/Home_09_Onepage_files/logistics.js.download" id="fastrans-logistics-script-js"></script>
+<script type="text/javascript" src="static/Home_09_Onepage_files/cal.js.download" id="cost-calculate-js"></script>
+<link rel="https://api.w.org/" href="https://themexriver.com/wp/fastrans/fastrans/wp-json/"><link rel="alternate" title="JSON" type="application/json" href="https://themexriver.com/wp/fastrans/fastrans/wp-json/wp/v2/pages/2081"><link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://themexriver.com/wp/fastrans/fastrans/xmlrpc.php?rsd">
+<meta name="generator" content="WordPress 6.6.4">
+<meta name="generator" content="WooCommerce 9.4.1">
+<link rel="canonical" href="https://themexriver.com/wp/fastrans/fastrans/home-09-onepage/">
+<link rel="shortlink" href="https://themexriver.com/wp/fastrans/fastrans/?p=2081">
+<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="https://themexriver.com/wp/fastrans/fastrans/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemexriver.com%2Fwp%2Ffastrans%2Ffastrans%2Fhome-09-onepage%2F">
+
+    
+    <script type="text/javascript">
+        var ajaxurl = 'https://themexriver.com/wp/fastrans/fastrans/wp-admin/admin-ajax.php';
+    </script>
+	<style>
+
+        .ftn-header-content-wrap .brand-logo,
+        .ftn-header-content-area:before,
+        .ftn-header-main-menu-cta-btn .header-cta-btn a{
+            background-color: #d97500;
+		}
+        .ftn-header-main-menu-cta-btn .header-cta-btn a:hover{
+            background-color: #ba6502;
+		}
+        .footer_style_nine .ft-footer-widget .widget-title{
+            color: #FFFFFF;
+        }
+        .footer_style_nine .ft-footer-widget .ft-footer-logo-widget p,
+        .footer_style_nine .ft-footer-widget .ft-footer-newslatter-widget p,
+        .footer_style_nine .ft-footer-widget .ft-footer-info-widget a,
+        .footer_style_nine .ft-footer-widget .ft-footer-info-widget .office-open-hour p
+        {
+            color: #9d9d9d;
+        }
+        .footer_style_nine .ftn-footer-copyright
+        {
+            color: #FFFFFF;
+        }
+        .footer_style_nine .ft-footer-widget .ft-footer-logo-widget .footer-logo-btn,
+        .footer_style_nine .ft-footer-widget .ft-footer-newslatter-widget button,
+        .footer_style_nine .ft-footer-widget .widget-title:before
+        {
+            background-color: #d97500;
+        }
+        .footer_style_nine .ft-footer-widget .ft-footer-info-widget i{
+            color: #d97500;
+        }
+
+
+
+        .footer_style_eleven .ft-footer-widget .widget-title{
+            color: #FFFFFF;
+        }
+        .footer_style_eleven .ft-footer-widget .ft-footer-logo-widget p,
+        .footer_style_eleven .ft-footer-widget .ft-footer-newslatter-widget p,
+        .footer_style_eleven .ft-footer-widget .ft-footer-info-widget a,
+        .footer_style_eleven .ft-footer-widget .ft-footer-info-widget .office-open-hour p
+        {
+            color: #9d9d9d;
+        }
+        .footer_style_eleven .ftn-footer-copyright
+        {
+            color: #FFFFFF;
+        }
+        .footer_style_eleven .ft-footer-widget .ft-footer-logo-widget .footer-logo-btn,
+        .footer_style_eleven .ft-footer-widget .ft-footer-newslatter-widget button,
+        .footer_style_eleven .ft-footer-widget .widget-title:before
+        {
+            background-color: #d9262a;
+        }
+        .footer_style_eleven .ft-footer-widget .ft-footer-info-widget i{
+            color: #d9262a;
+        }
+     /* Two-column layout */
+    .form-grid {
+      display: flex;
+      gap: 20px;
+    }
+    .form-grid .form-column {
+      flex: 1;
+      min-width: 250px; /* Responsive fallback */
+      display: flex;
+      flex-direction: column;
+    }
+
+    .registration-card label {
+      margin-top: 15px;
+      margin-bottom: 5px;
+      color: #374151;
+    }
+
+    .registration-card input, 
+    .registration-card select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #d1d5db;
+    }
+
+    .registration-card button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background-color: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .registration-card button:hover {
+      background-color: #1e40af;
+    }
+
+    /* Mobile Responsive Styles */
+    @media screen and (max-width: 768px) {
+      html, body {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        height: auto !important;
+        position: relative !important;
+        width: 100%;
+      }
+      
+      body {
+        min-height: 100vh !important;
+      }
+      
+      .boxed_wrapper {
+        overflow-x: hidden !important;
+        width: 100%;
+      }
+      
+      .tl-thx-header-main-content {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .tl-thx-header-main-menu {
+        justify-content: center !important;
+        padding: 10px !important;
+        display: flex !important;
+      }
+      
+      .tl-thx-header-main-menu > div {
+        display: flex !important;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+      }
+      
+      .tl-thx-header-main-menu-cta {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+      
+      .tl-thx-header-main-menu-cta nav,
+      .tl-thx-header-main-menu-cta ul {
+        display: flex !important;
+        visibility: visible !important;
+      }
+      
+      .tl-thx-header-main-menu-cta a {
+        display: flex !important;
+        visibility: visible !important;
+        padding: 15px 20px !important;
+        white-space: nowrap;
+      }
+      
+      .form-grid {
+        flex-direction: column;
+        gap: 0;
+      }
+      
+      .form-grid .form-column {
+        width: 100%;
+        min-width: 100%;
+      }
+      
+      .form-container {
+        padding: 15px;
+      }
+      
+      form {
+        max-width: 100%;
+        padding: 10px;
+      }
+      
+      .tl-thx-banner-text {
+        padding: 15px !important;
+        margin: 10px;
+      }
+      
+      .container {
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+      
+      input, select, button {
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+    }
+    
+    @media screen and (max-width: 480px) {
+      .tl-thx-brand-logo img {
+        max-width: 120px;
+      }
+      
+      .form-container h1 {
+        font-size: 1.5rem;
+      }
+      
+      label {
+        font-size: 0.9rem;
+      }
+      
+      .tl-thx-header-main-menu a {
+        padding: 10px !important;
+        font-size: 0.9rem;
+      }
+    }
+
+        
+	</style>
+	
+	<meta name="generator" content="Elementor 3.25.6; features: additional_custom_breakpoints, e_optimized_control_loading; settings: css_print_method-external, google_font-enabled, font_display-auto">
+			<style>
+				.e-con.e-parent:nth-of-type(n+4):not(.e-lazyloaded):not(.e-no-lazyload),
+				.e-con.e-parent:nth-of-type(n+4):not(.e-lazyloaded):not(.e-no-lazyload) * {
+					background-image: none !important;
+				}
+				@media screen and (max-height: 1024px) {
+					.e-con.e-parent:nth-of-type(n+3):not(.e-lazyloaded):not(.e-no-lazyload),
+					.e-con.e-parent:nth-of-type(n+3):not(.e-lazyloaded):not(.e-no-lazyload) * {
+						background-image: none !important;
+					}
+				}
+				@media screen and (max-height: 640px) {
+					.e-con.e-parent:nth-of-type(n+2):not(.e-lazyloaded):not(.e-no-lazyload),
+					.e-con.e-parent:nth-of-type(n+2):not(.e-lazyloaded):not(.e-no-lazyload) * {
+						background-image: none !important;
+					}
+				}
+			</style>
+			<meta name="generator" content="Powered by Slider Revolution 6.7.21 - responsive, Mobile-Friendly Slider Plugin for WordPress with comfortable drag and drop interface.">
+<style id="wp-fonts-local" type="text/css">
+@font-face{font-family:Inter;font-style:normal;font-weight:300 900;font-display:fallback;src:url('https://themexriver.com/wp/fastrans/fastrans/wp-content/plugins/woocommerce/assets/fonts/Inter-VariableFont_slnt,wght.woff2') format('woff2');font-stretch:normal;}
+@font-face{font-family:Cardo;font-style:normal;font-weight:400;font-display:fallback;src:url('https://themexriver.com/wp/fastrans/fastrans/wp-content/plugins/woocommerce/assets/fonts/cardo_normal_400.woff2') format('woff2');}
+</style>
+<script>function setREVStartSize(e){
+			//window.requestAnimationFrame(function() {
+				window.RSIW = window.RSIW===undefined ? window.innerWidth : window.RSIW;
+				window.RSIH = window.RSIH===undefined ? window.innerHeight : window.RSIH;
+				try {
+					var pw = document.getElementById(e.c).parentNode.offsetWidth,
+						newh;
+					pw = pw===0 || isNaN(pw) || (e.l=="fullwidth" || e.layout=="fullwidth") ? window.RSIW : pw;
+					e.tabw = e.tabw===undefined ? 0 : parseInt(e.tabw);
+					e.thumbw = e.thumbw===undefined ? 0 : parseInt(e.thumbw);
+					e.tabh = e.tabh===undefined ? 0 : parseInt(e.tabh);
+					e.thumbh = e.thumbh===undefined ? 0 : parseInt(e.thumbh);
+					e.tabhide = e.tabhide===undefined ? 0 : parseInt(e.tabhide);
+					e.thumbhide = e.thumbhide===undefined ? 0 : parseInt(e.thumbhide);
+					e.mh = e.mh===undefined || e.mh=="" || e.mh==="auto" ? 0 : parseInt(e.mh,0);
+					if(e.layout==="fullscreen" || e.l==="fullscreen")
+						newh = Math.max(e.mh,window.RSIH);
+					else{
+						e.gw = Array.isArray(e.gw) ? e.gw : [e.gw];
+						for (var i in e.rl) if (e.gw[i]===undefined || e.gw[i]===0) e.gw[i] = e.gw[i-1];
+						e.gh = e.el===undefined || e.el==="" || (Array.isArray(e.el) && e.el.length==0)? e.gh : e.el;
+						e.gh = Array.isArray(e.gh) ? e.gh : [e.gh];
+						for (var i in e.rl) if (e.gh[i]===undefined || e.gh[i]===0) e.gh[i] = e.gh[i-1];
+											
+						var nl = new Array(e.rl.length),
+							ix = 0,
+							sl;
+						e.tabw = e.tabhide>=pw ? 0 : e.tabw;
+						e.thumbw = e.thumbhide>=pw ? 0 : e.thumbw;
+						e.tabh = e.tabhide>=pw ? 0 : e.tabh;
+						e.thumbh = e.thumbhide>=pw ? 0 : e.thumbh;
+						for (var i in e.rl) nl[i] = e.rl[i]<window.RSIW ? 0 : e.rl[i];
+						sl = nl[0];
+						for (var i in nl) if (sl>nl[i] && nl[i]>0) { sl = nl[i]; ix=i;}
+						var m = pw>(e.gw[ix]+e.tabw+e.thumbw) ? 1 : (pw-(e.tabw+e.thumbw)) / (e.gw[ix]);
+						newh =  (e.gh[ix] * m) + (e.tabh + e.thumbh);
+					}
+					var el = document.getElementById(e.c);
+					if (el!==null && el) el.style.height = newh+"px";
+					el = document.getElementById(e.c+"_wrapper");
+					if (el!==null && el) {
+						el.style.height = newh+"px";
+						el.style.display = "block";
+					}
+				} catch(e){
+					console.log("Failure at Presize of Slider:" + e)
+				}
+			//});
+		  };</script>
+<script src="static/Home_09_Onepage_files/wp-emoji-release.min.js.download" defer=""></script><link rel="stylesheet" href="static/Home_09_Onepage_files/swiper.min.css"><script src="static/Home_09_Onepage_files/wp-emoji-release.min(1).js.download" defer=""></script><link rel="stylesheet" href="static/Home_09_Onepage_files/swiper(1).min.css">
+
+
+
+	    
+    <div class="boxed_wrapper">
+    	
+				<div id="preloader" style="display: none;"></div>
+        
+
+				<div class="up">
+        <a href="https://themexriver.com/wp/fastrans/fastrans/home-09-onepage/#" class="scrollup text-center" style="display: none;"><i class="fas fa-chevron-up"></i></a>
+    	</div>
+		        
+        	<div class="pageloader" style="z-index: 999999;">
+	      <div class="ftloader">
+	        	<div class="loader-inner semi-circle-spin">
+		<div></div>
+	</div>
+	      </div>	
+	</div><!-- Pageloader -->
+	<header id="tl-thx-header" class="tl-thx-header-section">
+        <div class="container">
+            <div class="tl-thx-header-main-content d-flex align-items-center justify-content-between">
+                <div class="tl-thx-brand-logo">
+                    <a href="https://dobs.dobs.cloud">
+                        <img src="static/Home_09_Onepage_files/logo1.png" alt="Logo">
+                    </a>
+                </div>
+                <div class="tl-thx-header-main-menu d-flex align-items-center justify-content-between" style="padding: 0px;">
+                    <div style="display: flex;gap: 10px;">
+                        <div class="tl-thx-header-main-menu d-flex align-items-center justify-content-between" style="padding: 0px;background-color: #ffffff;">
+                            <a style="padding: 20px;color: #000000;width: auto;" href="/set_language/en">English</a>
+                        </div>
+                        <div class="tl-thx-header-main-menu-cta  d-flex align-items-center" style="padding-left: 20px;padding-right: 20px;gap: 20px;background: white;border-radius: 10px;">
+                            <nav class="tl-thx-main-navigation clearfix ul-li">
+                                <ul id="tl-thx-main-nav" class="nav navbar-nav clearfix">
+                                <a class="d-flex justify-content-center align-items-center text-uppercase" href="/login" style="padding: 20px;width: auto;">تسجيل الدخول</a>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+<!-- End of header section
+	============================================= -->
+		<div data-elementor-type="wp-page" data-elementor-id="2081" class="elementor elementor-2081">
+						<section class="elementor-section elementor-top-section elementor-element elementor-element-a4b46cd elementor-section-full_width elementor-section-height-default elementor-section-height-default" data-id="a4b46cd" data-element_type="section" id="home">
+						<div class="elementor-container elementor-column-gap-no">
+					<div class="elementor-column elementor-col-100 elementor-top-column elementor-element elementor-element-15419ca1" data-id="15419ca1" data-element_type="column">
+			<div class="elementor-widget-wrap elementor-element-populated">
+						<div class="elementor-element elementor-element-7363488f elementor-widget elementor-widget-fastrance_trans_logi_banner" data-id="7363488f" data-element_type="widget" data-widget_type="fastrance_trans_logi_banner.default">
+				<div class="elementor-widget-container">
+			        <!-- Start of Slider section
+        ============================================= -->
+        <section id="tl-thx-banner" class="tl-thx-banner-section position-relative" data-background="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2022/04/slider-bg.jpg" style="background-image: url(&quot;https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2022/04/slider-bg.jpg&quot;);">
+            
+            <div class="tl-thx-banner-img2 position-absolute"><img decoding="async" src="static/Home_09_Onepage_files/s3.png"></div>
+            <div class="tl-thx-banner-img3 position-absolute"><img decoding="async" src="static/Home_09_Onepage_files/s2.png"></div>
+            <div class="container">
+                <div class="tl-thx-banner-text text-center position-relative headline pera-content" style="
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+">
+
+  <div class="form-container">
+    <h1>تسجيل السائق</h1>
+
+    <!-- ✅ Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div>
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- ✅ Driver Registration Form -->
+    <form action="{{ url_for('public.register') }}" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}">
+      <div class="form-grid" style="display: flex; column-gap: 10px;">
+        <!-- Left Column -->
+        <div class="form-column">
+          <label for="name">الاسم الكامل:</label>
+          <input type="text"  id="name" name="name" placeholder=" أدخل الاسم باللغة الإنجليزية English فقط" pattern="[A-Za-z\s]+" title="Please enter English letters only."  required>
+
+
+          <label for="iqaama_number">رقم الإقامة:</label>
+          <input type="text" id="iqaama_number" name="iqaama_number" maxlength="10" pattern="2[0-9]{9}" placeholder="2XXXXXXXXXX" title="ادخل 10 أرقام تبدأ بالرقم 2" required>
+
+          <label for="iqaama_expiry_date">تاريخ انتهاء الإقامة:</label>
+          <input type="date" id="iqaama_expiry_date" name="iqaama_expiry_date" required>
+
+          <label for="saudi_driving_license">رخصة قيادة سعودية متاحة:</label>
+          <select name="saudi_driving_license" id="saudi_driving_license" required>
+            <option value="">-- اختر --</option>
+            <option value="yes">نعم</option>
+            <option value="no">لا</option>
+          </select>
+        </div>
+
+        <!-- Right Column -->
+        <div class="form-column">
+          <label for="nationality">Nationality:</label>
+          <select id="nationality" name="nationality" required>
+<option value="">-- Select Nationality -- / اختر الجنسية --</option>
+
+<option value="Afghanistan">Afghanistan / أفغانستان</option>
+<option value="Albania">Albania / ألبانيا</option>
+<option value="Algeria">Algeria / الجزائر</option>
+<option value="Andorra">Andorra / أندورا</option>
+<option value="Angola">Angola / أنغولا</option>
+<option value="Antigua and Barbuda">Antigua and Barbuda / أنتيغوا وبربودا</option>
+<option value="Argentina">Argentina / الأرجنتين</option>
+<option value="Armenia">Armenia / أرمينيا</option>
+<option value="Australia">Australia / أستراليا</option>
+<option value="Austria">Austria / النمسا</option>
+<option value="Azerbaijan">Azerbaijan / أذربيجان</option>
+
+<option value="Bahamas">Bahamas / الباهاماس</option>
+<option value="Bahrain">Bahrain / البحرين</option>
+<option value="Bangladesh">Bangladesh / بنغلاديش</option>
+<option value="Barbados">Barbados / باربادوس</option>
+<option value="Belarus">Belarus / بيلاروس</option>
+<option value="Belgium">Belgium / بلجيكا</option>
+<option value="Belize">Belize / بليز</option>
+<option value="Benin">Benin / بنين</option>
+<option value="Bhutan">Bhutan / بوتان</option>
+<option value="Bolivia">Bolivia / بوليفيا</option>
+<option value="Bosnia and Herzegovina">Bosnia and Herzegovina / البوسنة والهرسك</option>
+<option value="Botswana">Botswana / بوتسوانا</option>
+<option value="Brazil">Brazil / البرازيل</option>
+<option value="Brunei">Brunei / بروناي</option>
+<option value="Bulgaria">Bulgaria / بلغاريا</option>
+<option value="Burkina Faso">Burkina Faso / بوركينا فاسو</option>
+<option value="Burundi">Burundi / بوروندي</option>
+
+<option value="Cabo Verde">Cabo Verde / الرأس الأخضر</option>
+<option value="Cambodia">Cambodia / كمبوديا</option>
+<option value="Cameroon">Cameroon / الكاميرون</option>
+<option value="Canada">Canada / كندا</option>
+<option value="Central African Republic">Central African Republic / جمهورية أفريقيا الوسطى</option>
+<option value="Chad">Chad / تشاد</option>
+<option value="Chile">Chile / تشيلي</option>
+<option value="China">China / الصين</option>
+<option value="Colombia">Colombia / كولومبيا</option>
+<option value="Comoros">Comoros / جزر القمر</option>
+<option value="Congo">Congo / الكونغو</option>
+<option value="Costa Rica">Costa Rica / كوستاريكا</option>
+<option value="Croatia">Croatia / كرواتيا</option>
+<option value="Cuba">Cuba / كوبا</option>
+<option value="Cyprus">Cyprus / قبرص</option>
+<option value="Czech Republic">Czech Republic / التشيك</option>
+
+<option value="Denmark">Denmark / الدنمارك</option>
+<option value="Djibouti">Djibouti / جيبوتي</option>
+<option value="Dominica">Dominica / دومينيكا</option>
+<option value="Dominican Republic">Dominican Republic / جمهورية الدومينيكان</option>
+
+<option value="Ecuador">Ecuador / الإكوادور</option>
+<option value="Egypt">Egypt / مصر</option>
+<option value="El Salvador">El Salvador / السلفادور</option>
+<option value="Equatorial Guinea">Equatorial Guinea / غينيا الاستوائية</option>
+<option value="Eritrea">Eritrea / إريتريا</option>
+<option value="Estonia">Estonia / إستونيا</option>
+<option value="Eswatini">Eswatini / إسواتيني</option>
+<option value="Ethiopia">Ethiopia / إثيوبيا</option>
+
+<option value="Fiji">Fiji / فيجي</option>
+<option value="Finland">Finland / فنلندا</option>
+<option value="France">France / فرنسا</option>
+
+<option value="Gabon">Gabon / الغابون</option>
+<option value="Gambia">Gambia / غامبيا</option>
+<option value="Georgia">Georgia / جورجيا</option>
+<option value="Germany">Germany / ألمانيا</option>
+<option value="Ghana">Ghana / غانا</option>
+<option value="Greece">Greece / اليونان</option>
+<option value="Grenada">Grenada / غرينادا</option>
+<option value="Guatemala">Guatemala / غواتيمالا</option>
+<option value="Guinea">Guinea / غينيا</option>
+<option value="Guinea-Bissau">Guinea-Bissau / غينيا بيساو</option>
+<option value="Guyana">Guyana / غيانا</option>
+
+<option value="Haiti">Haiti / هايتي</option>
+<option value="Honduras">Honduras / هندوراس</option>
+<option value="Hungary">Hungary / المجر</option>
+
+<option value="Iceland">Iceland / آيسلندا</option>
+<option value="India">India / الهند</option>
+<option value="Indonesia">Indonesia / إندونيسيا</option>
+<option value="Iran">Iran / إيران</option>
+<option value="Iraq">Iraq / العراق</option>
+<option value="Ireland">Ireland / أيرلندا</option>
+<option value="Italy">Italy / إيطاليا</option>
+
+<option value="Jamaica">Jamaica / جامايكا</option>
+<option value="Japan">Japan / اليابان</option>
+<option value="Jordan">Jordan / الأردن</option>
+
+<option value="Kazakhstan">Kazakhstan / كازاخستان</option>
+<option value="Kenya">Kenya / كينيا</option>
+<option value="Kiribati">Kiribati / كيريباتي</option>
+<option value="Kuwait">Kuwait / الكويت</option>
+<option value="Kyrgyzstan">Kyrgyzstan / قيرغيزستان</option>
+
+<option value="Laos">Laos / لاوس</option>
+<option value="Latvia">Latvia / لاتفيا</option>
+<option value="Lebanon">Lebanon / لبنان</option>
+<option value="Lesotho">Lesotho / ليسوتو</option>
+<option value="Liberia">Liberia / ليبيريا</option>
+<option value="Libya">Libya / ليبيا</option>
+<option value="Liechtenstein">Liechtenstein / ليختنشتاين</option>
+<option value="Lithuania">Lithuania / ليتوانيا</option>
+<option value="Luxembourg">Luxembourg / لوكسمبورغ</option>
+
+<option value="Madagascar">Madagascar / مدغشقر</option>
+<option value="Malawi">Malawi / مالاوي</option>
+<option value="Malaysia">Malaysia / ماليزيا</option>
+<option value="Maldives">Maldives / المالديف</option>
+<option value="Mali">Mali / مالي</option>
+<option value="Malta">Malta / مالطا</option>
+<option value="Marshall Islands">Marshall Islands / جزر مارشال</option>
+<option value="Mauritania">Mauritania / موريتانيا</option>
+<option value="Mauritius">Mauritius / موريشيوس</option>
+<option value="Mexico">Mexico / المكسيك</option>
+<option value="Micronesia">Micronesia / ميكرونيزيا</option>
+<option value="Moldova">Moldova / مولدوفا</option>
+<option value="Monaco">Monaco / موناكو</option>
+<option value="Mongolia">Mongolia / منغوليا</option>
+<option value="Montenegro">Montenegro / الجبل الأسود</option>
+<option value="Morocco">Morocco / المغرب</option>
+<option value="Mozambique">Mozambique / موزمبيق</option>
+<option value="Myanmar">Myanmar / ميانمار</option>
+
+<option value="Namibia">Namibia / ناميبيا</option>
+<option value="Nauru">Nauru / ناورو</option>
+<option value="Nepal">Nepal / نيبال</option>
+<option value="Netherlands">Netherlands / هولندا</option>
+<option value="New Zealand">New Zealand / نيوزيلندا</option>
+<option value="Nicaragua">Nicaragua / نيكاراغوا</option>
+<option value="Niger">Niger / النيجر</option>
+<option value="Nigeria">Nigeria / نيجيريا</option>
+<option value="North Korea">North Korea / كوريا الشمالية</option>
+<option value="North Macedonia">North Macedonia / مقدونيا الشمالية</option>
+<option value="Norway">Norway / النرويج</option>
+
+<option value="Oman">Oman / عُمان</option>
+
+<option value="Pakistan">Pakistan / باكستان</option>
+<option value="Palau">Palau / بالاو</option>
+<option value="Panama">Panama / بنما</option>
+<option value="Papua New Guinea">Papua New Guinea / بابوا غينيا الجديدة</option>
+<option value="Paraguay">Paraguay / باراغواي</option>
+<option value="Peru">Peru / بيرو</option>
+<option value="Philippines">Philippines / الفلبين</option>
+<option value="Poland">Poland / بولندا</option>
+<option value="Portugal">Portugal / البرتغال</option>
+
+<option value="Qatar">Qatar / قطر</option>
+
+<option value="Romania">Romania / رومانيا</option>
+<option value="Russia">Russia / روسيا</option>
+<option value="Rwanda">Rwanda / رواندا</option>
+
+<option value="Saint Kitts and Nevis">Saint Kitts and Nevis / سانت كيتس ونيفيس</option>
+<option value="Saint Lucia">Saint Lucia / سانت لوسيا</option>
+<option value="Saint Vincent and the Grenadines">Saint Vincent and the Grenadines / سانت فنسنت والغرينادين</option>
+<option value="Samoa">Samoa / ساموا</option>
+<option value="San Marino">San Marino / سان مارينو</option>
+<option value="Sao Tome and Principe">Sao Tome and Principe / ساو تومي وبرينسيبي</option>
+
+<option value="Saudi Arabia">Saudi Arabia / السعودية</option>
+
+<option value="Senegal">Senegal / السنغال</option>
+<option value="Serbia">Serbia / صربيا</option>
+<option value="Seychelles">Seychelles / سيشل</option>
+<option value="Sierra Leone">Sierra Leone / سيراليون</option>
+<option value="Singapore">Singapore / سنغافورة</option>
+<option value="Slovakia">Slovakia / سلوفاكيا</option>
+<option value="Slovenia">Slovenia / سلوفينيا</option>
+<option value="Solomon Islands">Solomon Islands / جزر سليمان</option>
+<option value="Somalia">Somalia / الصومال</option>
+<option value="South Africa">South Africa / جنوب أفريقيا</option>
+<option value="South Korea">South Korea / كوريا الجنوبية</option>
+<option value="South Sudan">South Sudan / جنوب السودان</option>
+<option value="Spain">Spain / إسبانيا</option>
+<option value="Sri Lanka">Sri Lanka / سريلانكا</option>
+<option value="Sudan">Sudan / السودان</option>
+<option value="Suriname">Suriname / سورينام</option>
+<option value="Sweden">Sweden / السويد</option>
+<option value="Switzerland">Switzerland / سويسرا</option>
+<option value="Syria">Syria / سوريا</option>
+
+<option value="Taiwan">Taiwan / تايوان</option>
+<option value="Tajikistan">Tajikistan / طاجيكستان</option>
+<option value="Tanzania">Tanzania / تنزانيا</option>
+<option value="Thailand">Thailand / تايلاند</option>
+<option value="Timor-Leste">Timor-Leste / تيمور الشرقية</option>
+<option value="Togo">Togo / توغو</option>
+<option value="Tonga">Tonga / تونغا</option>
+<option value="Trinidad and Tobago">Trinidad and Tobago / ترينيداد وتوباغو</option>
+<option value="Tunisia">Tunisia / تونس</option>
+<option value="Turkey">Turkey / تركيا</option>
+<option value="Turkmenistan">Turkmenistan / تركمانستان</option>
+<option value="Tuvalu">Tuvalu / توفالو</option>
+
+<option value="Uganda">Uganda / أوغندا</option>
+<option value="Ukraine">Ukraine / أوكرانيا</option>
+<option value="United Arab Emirates">United Arab Emirates / الإمارات</option>
+<option value="United Kingdom">United Kingdom / المملكة المتحدة</option>
+<option value="United States">United States / الولايات المتحدة</option>
+<option value="Uruguay">Uruguay / أوروغواي</option>
+<option value="Uzbekistan">Uzbekistan / أوزبكستان</option>
+
+<option value="Vanuatu">Vanuatu / فانواتو</option>
+<option value="Vatican City">Vatican City / الفاتيكان</option>
+<option value="Venezuela">Venezuela / فنزويلا</option>
+<option value="Vietnam">Vietnam / فيتنام</option>
+
+<option value="Yemen">Yemen / اليمن</option>
+
+<option value="Zambia">Zambia / زامبيا</option>
+<option value="Zimbabwe">Zimbabwe / زيمبابوي</option>
+
+<option value="Other">Other / أخرى</option>
+
+          </select>
+
+          <label for="city">المدينة</label>
+          <select id="city" name="city" required>
+<option value="">-- Select City -- / اختر المدينة --</option>
+
+<option value="Riyadh">Riyadh / الرياض</option>
+<option value="Jeddah">Jeddah / جدة</option>
+<option value="Dammam">Dammam / الدمام</option>
+<option value="Makkah">Makkah / مكة</option>
+<option value="Madinah">Madinah / المدينة المنورة</option>
+<option value="Khobar">Al Khobar / الخبر</option>
+<option value="Dhahran">Dhahran / الظهران</option>
+<option value="Qassim">Qassim / القصيم</option>
+<option value="Buraidah">Buraidah / بريدة</option>
+<option value="Abha">Abha / أبها</option>
+<option value="Khamis Mushait">Khamis Mushait / خميس مشيط</option>
+<option value="Hail">Hail / حائل</option>
+<option value="Tabuk">Tabuk / تبوك</option>
+<option value="Jazan">Jazan / جازان</option>
+<option value="Najran">Najran / نجران</option>
+<option value="Al Baha">Al Baha / الباحة</option>
+<option value="Sakaka">Sakaka / سكاكا</option>
+<option value="Arar">Arar / عرعر</option>
+<option value="Yanbu">Yanbu / ينبع</option>
+<option value="Rabigh">Rabigh / رابغ</option>
+<option value="Taif">Taif / الطائف</option>
+<option value="Al Ahsa">Al Ahsa / الأحساء</option>
+<option value="Hafar Al Batin">Hafar Al Batin / حفر الباطن</option>
+<option value="Jubail">Jubail / الجبيل</option>
+<option value="Rafha">Rafha / رفحاء</option>
+<option value="Turaif">Turaif / طريف</option>
+<option value="Al Wajh">Al Wajh / الوجه</option>
+<option value="Dawadmi">Ad Dawadmi / الدوادمي</option>
+<option value="Mahd">Mahd / مهد الذهب</option>
+<option value="Qurayyat">Qurayyat / القريات</option>
+<option value="Baljurashi">Baljurashi / بلجرشي</option>
+
+<option value="Other">Other / أخرى</option>
+
+          </select>
+
+          <!-- ✅ Changed field: Absher Number -->
+          <label for="absher_number">رقم أبشر (الجوال):</label>
+          <input type="text" id="absher_number" name="absher_number" maxlength="10" pattern="05[0-9]{8}" placeholder="05XXXXXXXX" required>
+
+          <label for="previous_sponsor_number">إجمالي تحويلات الرعاية:</label>
+          <select id="previous_sponsor_number" name="previous_sponsor_number" required>
+<option value="">-- اختر --</option>
+<option value="0">٠</option>
+<option value="1">١</option>
+<option value="2">٢</option>
+<option value="3">٣</option>
+<option value="4">٤</option>
+<option value="5">٥</option>
+
+          </select>
+        </div>
+      </div>
+
+      <label for="iqama_card_upload">تحميل بطاقة الإقامة:</label>
+      <input type="file" id="iqama_card_upload" name="iqama_card_upload" accept=".png,.jpg,.jpeg" required>
+
+      <button type="submit">تسجيل</button>
+    </form>
+  </div>
+                    
+                    
+                </div>
+            </div>
+        </section>	
+    <!-- End of Slider section
+        ============================================= -->
+			</div>
+				</div>
+					</div>
+		</div>
+					</div>
+		</section>
+				<section class="elementor-section elementor-top-section elementor-element elementor-element-42a37305 elementor-section-full_width elementor-section-height-default elementor-section-height-default" data-id="42a37305" data-element_type="section" id="service">
+						<div class="elementor-container elementor-column-gap-no">
+					<div class="elementor-column elementor-col-100 elementor-top-column elementor-element elementor-element-7c7a6a41" data-id="7c7a6a41" data-element_type="column">
+			<div class="elementor-widget-wrap elementor-element-populated">
+						<div class="elementor-element elementor-element-70866bd5 elementor-widget elementor-widget-fastrance_trans_logi_service" data-id="70866bd5" data-element_type="widget" data-widget_type="fastrance_trans_logi_service.default">
+				<div class="elementor-widget-container">
+			        <!-- Start of Service section
+        ============================================= -->
+        <section id="tl-thx-service" class="tl-thx-service-section">
+            <div class="container">
+                <div class="tl-thx-section-title headline pera-content text-center  wow fadeInUp animated" data-wow-delay="0ms" data-wow-duration="1500ms" style="visibility: visible; animation-duration: 1500ms; animation-delay: 0ms; animation-name: fadeInUp;">
+                    <h2><i></i>نحن حلول</h2>
+                    <p>تقديم بيئة ودية وفعالة للخدمة مع إمكانيات متعددة. نحن نضمن لعملائنا تجربة خدمة سلسة وسريعة وفعالة</p>
+                </div>
+                
+            </div>
+        </section>	
+    <!-- End of Service section
+        ============================================= -->
+			</div>
+				</div>
+					</div>
+		</div>
+					</div>
+		</section>
+				<section class="elementor-section elementor-top-section elementor-element elementor-element-4cedd792 elementor-section-full_width elementor-section-height-default elementor-section-height-default" data-id="4cedd792" data-element_type="section" id="about">
+						<div class="elementor-container elementor-column-gap-no">
+					<div class="elementor-column elementor-col-100 elementor-top-column elementor-element elementor-element-5f84b669" data-id="5f84b669" data-element_type="column">
+			<div class="elementor-widget-wrap elementor-element-populated">
+						<div class="elementor-element elementor-element-767f8481 elementor-widget elementor-widget-fastrance_trans_video_banner" data-id="767f8481" data-element_type="widget" data-widget_type="fastrance_trans_video_banner.default">
+				<div class="elementor-widget-container">
+			        <!-- Start of video section
+        ============================================= -->
+        <section id="tl-thx-video" class="tl-thx-video-section position-relative" data-background="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/v-bg.jpg" style="background-image: url(&quot;https://img.freepik.com/premium-photo/food-delivery-driver-with-friendly-smile_1007506-1370.jpg&quot;);">
+            <div class="background_overlay"></div>
+            <div class="container">
+                <div class="tl-thx-video-content position-relative">
+                    <div class="tl-thx-video-play-btn  wow fadeInUp animated" data-wow-delay="0ms" data-wow-duration="1500ms" style="visibility: visible; animation-duration: 1500ms; animation-delay: 0ms; animation-name: fadeInUp;">
+                        <a class="video_box d-flex align-items-center justify-content-center" href="https://www.youtube.com/watch?v=C4jjFanHZo8">
+                            <i class="fas fa-play"></i>
+                        </a>
+                    </div>
+                    <div class="tl-thx-section-title headline pera-content text-center  wow fadeInUp animated" data-wow-delay="200ms" data-wow-duration="1500ms" style="visibility: visible; animation-duration: 1500ms; animation-delay: 200ms; animation-name: fadeInUp;">
+                        <h2><i></i>دليلك للخدمات اللوجستية العالمية في المملكة العربية السعودية</h2>
+                        
+                    </div>
+                    <div class="tl-thx-btn d-flex justify-content-center  wow fadeInUp animated" data-wow-delay="400ms" data-wow-duration="1500ms" style="visibility: visible; animation-duration: 1500ms; animation-delay: 400ms; animation-name: fadeInUp;">
+                        <a class="d-flex justify-content-center align-items-center text-uppercase" href="#">اتصل بنا <i class="far fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    <!-- End of video section
+        ============================================= -->
+			</div>
+				</div>
+					</div>
+		</div>
+					</div>
+		</section>
+				
+				
+				
+				
+				</div>
+		
+	<div class="clearfix"></div>
+
+		<div class="pageloader" style="z-index: 999999;">
+	      <div class="ftloader">
+	        	<div class="loader-inner semi-circle-spin">
+		<div></div>
+	</div>
+	      </div>	
+	</div><!-- Pageloader -->
+	    
+    <!-- Start Of Footer section
+	============================================= -->
+	<footer id="ft-footer-3" class="ft-footer-section-3 ft-footer-seven">
+		
+        
+        <div class="ft-footer-widget-wrapper-3">
+			<div class="container">
+				                <div class="ft-footer-content-wrap-3">
+					<div class="row">
+						<div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 wow  fadeInUp    animated animated" style="visibility: visible;animation-name: fadeInUp;width: 25%;"><div id="fastrans_contact_info-1" class="footer-widget ft-footer-widget widget_fastrans_contact_info">      		
+			
+            <!--Start single footer widget-->
+         	<div class="ft-footer-newslatter-widget pera-content headline">
+                <div class="ft-footer-info-widget ul-li ">
+                    <h3 class="widget-title">معلومات رسمية:</h3>                    <ul>
+                                                <li>
+                            <i class="fas fa-map-marker-alt"></i> 
+                            <p>برج مدى، كورنيش الخبر، الخبر</p>
+                        </li>
+                                                                        <li>
+                            <i class="fas fa-phone"></i><a href="tel:920008946">92 000 8946</a>
+                        </li>
+                                            </ul>
+                                        <div class="office-open-hour">
+                        <span>ساعات العمل: </span>                        <p>الأحد - الخميس: 10 صباحًا - 6 مساءً، السبت: 10 صباحًا - 4 مساءً، الجمعة: مغلق</p>                    </div>
+                                    </div>
+            </div>
+                      
+        </div></div><div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 wow  fadeInUp    animated animated" style="visibility: visible;animation-name: fadeInUp;width: 50%;"><div id="fastrans_our_projects_v2-1" class="footer-widget ft-footer-widget widget_fastrans_our_projects_v2">		
+        <!-- Instagram Widget -->
+        <div class="pera-content">
+            <div class="gallery-widget clearfix">
+                <h3 class="widget-title">مشاريعنا</h3>                <ul class="zoom-gallery">
+                           
+           	<!-- Title -->
+                        <li class="image" style="background-image: url('https://th.bing.com/th/id/OIP.s1DZQ6Ny8_Nqh2sQs_QAOAHaHa?w=171&amp;h=180&amp;c=7&amp;r=0&amp;o=7&amp;cb=12&amp;pid=1.7&amp;rm=3');">
+                <a href="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/gl6.jpg" data-source="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/gl6.jpg"></a>
+            </li>
+                        <li class="image" style="background-image: url('https://tse1.mm.bing.net/th/id/OIP.m8L6aG10w6kIc7yRS7iSGQAAAA?cb=12&amp;rs=1&amp;pid=ImgDetMain&amp;o=7&amp;rm=3');">
+                <a href="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port3-1.jpg" data-source="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port3-1.jpg"></a>
+            </li>
+                        <li class="image" style="background-image: url('https://th.bing.com/th/id/OIP.Jc2uJn-TGOfPsFiTFoGVGgHaHa?w=174&amp;h=180&amp;c=7&amp;r=0&amp;o=7&amp;cb=12&amp;pid=1.7&amp;rm=3');">
+                <a href="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port4-1.jpg" data-source="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port4-1.jpg"></a>
+            </li>
+                        
+                        <li class="image" style="background-image: url('https://th.bing.com/th/id/OIP.ywjOl1JelYO4FiqadOcn-gAAAA?w=156&amp;h=180&amp;c=7&amp;r=0&amp;o=7&amp;cb=12&amp;pid=1.7&amp;rm=3');">
+                <a href="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port3-1.jpg" data-source="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port3-1.jpg"></a>
+            </li><li class="image" style="background-image: url('https://tse1.mm.bing.net/th/id/OIP.j8tq39KCAbz6epsTFNSKOAHaHa?cb=12&amp;rs=1&amp;pid=ImgDetMain&amp;o=7&amp;rm=3');">
+                <a href="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port2-1.jpg" data-source="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port2-1.jpg"></a>
+            </li>
+                        <li class="image" style="background-image: url('https://tse1.mm.bing.net/th/id/OIP.j8tq39KCAbz6epsTFNSKOAHaHa?cb=12&amp;rs=1&amp;pid=ImgDetMain&amp;o=7&amp;rm=3');">
+                <a href="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port2-1.jpg" data-source="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port2-1.jpg"></a>
+            </li><li class="image" style="background-image: url('https://th.bing.com/th/id/OIP.n0z_dh09crgNKgSXy8deYAHaHa?w=174&amp;h=180&amp;c=7&amp;r=0&amp;o=7&amp;cb=12&amp;pid=1.7&amp;rm=3');">
+                <a href="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port1-1.jpg" data-source="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port1-1.jpg"></a>
+            </li><li class="image" style="background-image: url('https://th.bing.com/th/id/OIP.ywjOl1JelYO4FiqadOcn-gAAAA?w=156&amp;h=180&amp;c=7&amp;r=0&amp;o=7&amp;cb=12&amp;pid=1.7&amp;rm=3');">
+            </li>
+                            
+         
+                <li class="image" style="background-image: url('https://th.bing.com/th/id/OIP.n0z_dh09crgNKgSXy8deYAHaHa?w=174&amp;h=180&amp;c=7&amp;r=0&amp;o=7&amp;cb=12&amp;pid=1.7&amp;rm=3');">
+                <a href="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port1-1.jpg" data-source="https://themexriver.com/wp/fastrans/fastrans/wp-content/uploads/sites/2/2021/10/port1-1.jpg"></a>
+            </li></ul>
+            </div>
+        </div>
+        
+        </div></div>					</div>
+				</div>
+                                
+                <div class="ft-footer-copyright text-center">
+                    <span>© 2025 سبيد لوجستكس. جميع الحقوق محفوظة</span>
+                </div>
+                
+			</div>
+		</div>
+        
+	</footer>	
+	<!-- End of Footer section
+	============================================= -->
+</div>
+<!--End Page Wrapper-->
+
+<div class="widget_shopping_cart_live_region screen-reader-text" role="status"></div>
+{% include 'includes/csrf_auto.html' %}
+</body></html>

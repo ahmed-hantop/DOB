@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -53,6 +54,55 @@ def validate_upload(file_storage, max_bytes: int, allowed_ext=ALLOWED_EXTENSIONS
     file_storage.stream.seek(0)
     if size > max_bytes:
         raise ValueError(f"File too large. Maximum {max_bytes // (1024 * 1024)} MB.")
+
+
+def link_into_shared_storage(legacy_path: str, driver_id: int, shared_root: str, filename: str | None = None) -> str:
+    """Publish an ALREADY-SAVED legacy upload into the shared driver_documents
+    store without writing a second copy of the same bytes.
+
+    Every driver document used to be written twice: once into static/uploads
+    under a descriptive name, and again into the shared folder under a
+    timestamped one. That wasted disk (~200 MB and climbing) and, worse, meant
+    the two copies had different filenames, so anything comparing names saw one
+    document as two -- measured 2026-09-01, 219 of 219 cross-system duplicates
+    had mismatched names and 190 of 241 drivers showed at least one document
+    twice on the DMS Shared Documents screen.
+
+    A hard link fixes both at once: one set of bytes on disk with two names
+    pointing at the same inode, and the shared copy keeps the SAME filename as
+    the legacy one, so filename-based matching now agrees with content-based
+    matching. Both paths live under /srv/apps (same filesystem), which is what
+    makes the link possible; if that ever stops being true, or the link is
+    refused for any other reason, we fall back to a real copy so the shared
+    store is never left missing a document.
+
+    Returns:  {driver_id}/{filename}  (relative path for driver_documents.file_path)
+    """
+    source = Path(legacy_path)
+    if not source.is_file():
+        raise FileNotFoundError(f"legacy upload not found: {legacy_path}")
+
+    final_name = secure_filename(filename or source.name)
+    folder = Path(shared_root) / str(driver_id)
+    folder.mkdir(parents=True, exist_ok=True)
+    target = folder / final_name
+
+    if target.exists():
+        # Same inode already published -- nothing to do. A different file under
+        # the same name is replaced, matching the old overwrite behaviour.
+        try:
+            if target.samefile(source):
+                return f"{driver_id}/{final_name}"
+        except OSError:
+            pass
+        target.unlink(missing_ok=True)
+
+    try:
+        os.link(source, target)
+    except OSError:
+        shutil.copy2(source, target)
+
+    return f"{driver_id}/{final_name}"
 
 
 def save_to_shared_storage(file_storage, driver_id: int, document_type: str, shared_root: str, filename: str | None = None) -> str:

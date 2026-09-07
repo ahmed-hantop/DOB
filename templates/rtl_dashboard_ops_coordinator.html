@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head> 
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>لوحة تحكم منسق العمليات</title>
+  <link rel="icon" type="image/x-icon" href="./Home 09 (Onepage)_files/logo1.png">
+
+  <!-- Tajawal Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Finance_files/bootstrap1.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Finance_files/style1.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard-common.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Finance_files/default.css') }}">
+  <style>
+    /* ---------- layout & utility ---------- */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root{
+      --bg:#e8eef5; --nav:#1a1a2e; --accent:#3498db; --ok:#27ae60; --danger:#e74c3c;
+      --primary:#602273; --primary-dark:#450f5c; --text-dark:#2c3e50; --text-light:#555;
+      --card-bg:#ffffff; --border:#cbd5e1; --shadow:0 2px 8px rgba(0,0,0,0.12);
+    }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); color:var(--text-dark); -webkit-font-smoothing:antialiased; direction:rtl; }
+    .navbar { background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; box-shadow:var(--shadow); }
+    .navbar a { color:#fff; text-decoration:none; margin-right:12px; cursor:pointer; font-weight:600; background:rgba(255,255,255,0.1); padding:8px 14px; border-radius:6px; transition:all 0.3s; }
+    .navbar a:hover { background:rgba(255,255,255,0.2); }
+    .container { padding:24px; max-width:85%; margin:0 auto; }
+    h2 { color:var(--text-dark); margin:0 0 16px 0; font-weight:600; }
+
+    .driver-cards { display:flex; flex-wrap:wrap; gap:18px; padding:10px; }
+    .driver-card {  background:var(--card-bg); border-radius:10px; margin:5px; padding:16px; box-shadow:var(--shadow); cursor:pointer; transition:transform 0.3s, box-shadow 0.3s; border:1px solid var(--border); }
+    .driver-card:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,0.15); }
+    .driver-card h3 { margin:0 0 10px 0; font-size:16px; color:var(--text-dark); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+    .driver-card p { margin:6px 0; font-size:14px; color:var(--text-light); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+
+    .tab-btn { background:#f1f5f9; border:2px solid var(--border); padding:10px 16px; margin-left:8px; border-radius:8px; cursor:pointer; font-weight:600; color:var(--text-light); transition:all 0.3s; }
+    .tab-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .tab-btn:hover { background:#e2e8f0; }
+
+    .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); align-items:center; justify-content:center; padding:20px; z-index:9999; }
+    .modal.show { display:flex; }
+
+    .modal-content { background:var(--card-bg); width:760px; max-width:100%; border-radius:12px; padding:24px; box-shadow:0 10px 50px rgba(0,0,0,0.25); max-height:92vh; overflow:auto; direction:rtl; }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid var(--border); padding-bottom:12px; }
+    .modal-header h2 { margin:0; }
+    .close { font-size:28px; cursor:pointer; border:none; background:transparent; color:var(--text-dark); transition:color 0.3s; }
+    .close:hover { color:#e74c3c; }
+
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+    label { font-size:14px; color:var(--text-dark); font-weight:600; margin-bottom:6px; display:block; text-align:right; }
+    .value { font-size:14px; color:var(--text-dark); margin-bottom:8px; }
+    .full-row { grid-column: 1 / -1; }
+
+    .approve-note { width:100%; padding:10px 12px; border-radius:8px; border:2px solid var(--border); box-sizing:border-box; transition:border 0.3s; text-align:right; }
+    .approve-note:focus { outline:none; border-color:var(--primary); }
+    .btn.reject { background:#e74c3c; }
+    .btn { background:#27ae60; color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s; }
+    .btn:hover { transform:translateY(-2px); }
+    .btn.secondary { background:#2980b9; }
+
+    .flash { padding:12px; border-radius:8px; margin:10px 0; }
+    .flash.success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+    .flash.warning { background:#fff3cd; color:#856404; border:1px solid #ffeeba; }
+    .flash.danger { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+
+    .small { font-size:13px; color:#fff; }
+    img.upload-thumb { max-width:100%; border-radius:8px; margin-top:6px; box-shadow:var(--shadow); }
+    .meta { font-size:12px; color:var(--text-light); }
+
+    .toast-container { position:fixed; top:20px; left:20px; display:flex; flex-direction:column; gap:12px; z-index:20000; }
+    .toast { padding:14px 20px; border-radius:8px; color:#fff; box-shadow:0 6px 20px rgba(0,0,0,0.3); transform:translateX(-120%); opacity:0; transition:all .4s; white-space:nowrap; font-weight:600; font-size:15px; }
+    .toast.show { transform:translateX(0); opacity:1; }
+    .toast.success { background:#27ae60; } .toast.error { background:#c0392b; }
+  </style>
+</head>
+<body>
+    <div class="navbar">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <img src="{{ url_for('static', filename='DOBS.png') }}" alt="Logo" style="width:40%;">
+    </div>
+    <div>
+<a href="{{ url_for('public.set_language', lang='en') }}" class="btn btn-sm btn-outline-primary">English</a>
+      <span class="small">{{ current_user.name or current_user.username }} ({{ current_user.role }})</span>
+      <a href="javascript:void(0)" onclick="openPasswordModal()">تغيير كلمة المرور</a>
+      <a href="{{ url_for('auth.logout') }}">تسجيل الخروج</a>
+    </div>
+  </div>
+
+  <div class="container">
+          <h2>لوحة تحكم منسق العمليات</h2>
+      <br>
+    <div style="display: flex; column-gap: 18px;">
+      <div style="width: 100%;gap: 18px;display: flex;">
+            <div style="width: 80%;  border-radius: 20px;padding: 20px;border: 1px solid #ccc;background-color: #60227338;">
+              <div class="search-box" style="margin-bottom:12px;">
+                <input type="text" id="offboardingSearch" value="{{ q or '' }}" placeholder="ابحث عن السائق بالاسم أو بالإقامة..." oninput="filterOffboardingDrivers()" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc;">
+              </div>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-messages" style="margin-bottom: 15px;">
+      <style>
+        .flash-messages .alert-success { background:#d4edda; color:#155724; }
+        .flash-messages .alert-danger  { background:#f8d7da; color:#721c24; }
+        .flash-messages .alert-info    { background:#d1ecf1; color:#0c5460; }
+      </style>
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}"
+             style="padding: 10px; border-radius: 5px; margin-bottom: 8px;">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+              <div style="display: grid; grid-template-columns: auto auto auto;">
+                {% for driver in completed_drivers %}
+                <div class="driver-card">
+                  <h5>{{ driver.name }} <br> (إقامة: {{ driver.iqaama_number or 'N/A' }})</h5>
+                  <p>
+                    مدينة: {{ driver.city or 'N/A' }}<br>
+                    جوال: {{ driver.absher_number or 'N/A' }}<br>
+                    تم إتمام عملية الانضمام في: {{ driver.sponsorship_transfer_completed_at.strftime('%Y-%m-%d %H:%M') if driver.sponsorship_transfer_completed_at else 'N/A' }}
+                  </p>
+
+                  {% if driver.offboard_request %}
+                    <div class="alert alert-warning">تم طلب إنهاء الخدمة بالفعل.</div>
+                  {% else %}
+                    <form method="POST" action="{{ url_for('ops_coordinator.initiate_offboarding', driver_id=driver.id) }}">
+                      <div class="mb-2">
+                        <label for="reason-{{ driver.id }}" class="form-label">سبب إنهاء الخدمة</label>
+                        <input type="text" class="form-control" id="reason-{{ driver.id }}" name="reason" placeholder="أدخل السبب" required>
+                      </div>
+                      <button type="submit" class="btn btn-danger offboard-btn">طلب إنهاء الخدمة</button>
+                    </form>
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="col-lg-12" style="width: 20%;">
+              <div class="single_element">
+                  <div class="quick_activity">
+                      <div class="row">
+                          <div class="col-12">
+                              <div class="quick_activity_wrap" style="display: grid;grid-template-columns: repeat(1, 1fr);">
+                                  <div style="display: grid;grid-gap: 10px;grid-template-columns: repeat(1, 1fr);">
+                                    <div class="single_quick_activity" style=" padding: 10px 20px;">
+                                        <h4>السائقون في علامة تبويب الانضمام:</h4>
+                                        <h3> <span class="counter">{{ count_completed }}</span> </h3>
+                                    </div>
+                                  </div>  
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
+  </div>
+    <script>
+    let opsCoordSearchTimer = null;
+    function filterOffboardingDrivers() {
+      clearTimeout(opsCoordSearchTimer);
+      opsCoordSearchTimer = setTimeout(() => {
+        const query = (document.getElementById("offboardingSearch").value || "").trim();
+        const params = new URLSearchParams(window.location.search);
+        if (query) params.set('q', query);
+        else params.delete('q');
+        params.set('lang', 'ar');
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+      }, 300);
+    }
+  </script>
+{% include 'includes/csrf_auto.html' %}
+</body>
+</html>
+

@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>مدير العمليات — لوحة المعلومات</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='Home_09_Onepage_files/logo1.png') }}">  
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Finance_files/bootstrap1.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Finance_files/style1.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Finance_files/default.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard-common.css') }}">
+  <style>
+    /* ---------- layout & utility ---------- */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root{
+      --bg:#e8eef5; --nav:#1a1a2e; --accent:#3498db; --ok:#27ae60; --danger:#e74c3c;
+      --primary:#602273; --primary-dark:#450f5c; --text-dark:#2c3e50; --text-light:#555;
+      --card-bg:#ffffff; --border:#cbd5e1; --shadow:0 2px 8px rgba(0,0,0,0.12);
+    }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); color:var(--text-dark); -webkit-font-smoothing:antialiased; direction:rtl; }
+    .navbar { background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; box-shadow:var(--shadow); }
+    .navbar a { color:#fff; text-decoration:none; margin-right:12px; cursor:pointer; font-weight:600; background:rgba(255,255,255,0.1); padding:8px 14px; border-radius:6px; transition:all 0.3s; }
+    .navbar a:hover { background:rgba(255,255,255,0.2); }
+    .container { padding:24px; max-width:85%; margin:0 auto; }
+    h2 { color:var(--text-dark); margin:0 0 16px 0; font-weight:600; }
+ 
+    .driver-cards { display:flex; flex-wrap:wrap; gap:18px; padding:10px; }
+    .driver-card { width:280px; background:var(--card-bg); border-radius:10px; padding:16px; box-shadow:var(--shadow); cursor:pointer; transition:transform 0.3s, box-shadow 0.3s; border:1px solid var(--border); }
+    .driver-card:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,0.15); }
+    .driver-card h3 { margin:0 0 10px 0; font-size:16px; color:var(--text-dark); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+    .driver-card p { margin:6px 0; font-size:14px; color:var(--text-light); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+
+    .tab-btn { background:#f1f5f9; border:2px solid var(--border); padding:10px 16px; margin-left:8px; border-radius:8px; cursor:pointer; font-weight:600; color:var(--text-light); transition:all 0.3s; }
+    .tab-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .tab-btn:hover { background:#e2e8f0; }
+
+    .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); align-items:center; justify-content:center; padding:20px; z-index:9999; }
+    .modal.show { display:flex; }
+
+    .modal-content { background:var(--card-bg); width:760px; max-width:100%; border-radius:12px; padding:24px; box-shadow:0 10px 50px rgba(0,0,0,0.25); max-height:92vh; overflow:auto; direction:rtl; }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid var(--border); padding-bottom:12px; }
+    .modal-header h2 { margin:0; }
+    .close { font-size:28px; cursor:pointer; border:none; background:transparent; color:var(--text-dark); transition:color 0.3s; }
+    .close:hover { color:#e74c3c; }
+
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+    label { font-size:14px; color:var(--text-dark); font-weight:600; margin-bottom:6px; display:block; text-align:right; }
+    .value { font-size:14px; color:var(--text-dark); margin-bottom:8px; }
+    .full-row { grid-column: 1 / -1; }
+
+    .approve-note { width:100%; padding:10px 12px; border-radius:8px; border:2px solid var(--border); box-sizing:border-box; transition:border 0.3s; text-align:right; }
+    .approve-note:focus { outline:none; border-color:var(--primary); }
+    .btn.reject { background:#e74c3c; }
+    .btn { background:#27ae60; color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s; }
+    .btn:hover { transform:translateY(-2px); }
+    .btn.secondary { background:#2980b9; }
+
+    .flash { padding:12px; border-radius:8px; margin:10px 0; }
+    .flash.success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+    .flash.warning { background:#fff3cd; color:#856404; border:1px solid #ffeeba; }
+    .flash.danger { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+
+    .small { font-size:13px; color:#64748b; }
+    img.upload-thumb { max-width:100%; border-radius:8px; margin-top:6px; box-shadow:var(--shadow); }
+    .meta { font-size:12px; color:var(--text-light); }
+
+  /* Overlay */
+  #offboardingModal {
+    display:none;
+    position:fixed;
+    top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.6);
+    justify-content:center;
+    align-items:center;
+    animation: fadeIn .2s ease-in-out;
+    z-index:9999;
+  }
+
+  @keyframes fadeIn {
+    from { opacity:0; }
+    to { opacity:1; }
+  }
+
+  /* Modal Box */
+  .off-modal-content {
+    background:white;
+    width:90%;
+    max-width:650px;
+    border-radius:14px;
+    padding:20px;
+    max-height:85vh;
+    overflow-y:auto;
+    box-shadow:0 0 20px rgba(0,0,0,0.3);
+    animation: popUp .2s ease;
+  }
+
+  @keyframes popUp {
+    from { transform:scale(0.9); opacity:0; }
+    to { transform:scale(1); opacity:1; }
+  }
+
+  /* Timeline block */
+  .timeline-item {
+    border-left:3px solid #3a7afe;
+    padding:10px 15px;
+    margin:12px 0;
+    background:#f6f8ff;
+    border-radius:8px;
+  }
+  .timeline-item h3 {margin:0 0 6px;color:#3a7afe;}
+  /* Labels */
+  .dept-label { font-weight:bold; margin-top:8px;}
+  .dept-time {font-size:13px;color:#666; margin-bottom:6px;}
+
+  .timeline {
+  list-style: none;
+  padding-left: 0;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #ddd;
+  border-radius: 2px;
+}
+
+.timeline-item {
+  position: relative;
+  padding: 10px 40px;
+  margin-bottom: 20px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ddd;
+  top: 10px;
+  border: 3px solid white;
+  box-shadow: 0 0 0 2px #ddd;
+}
+
+.timeline-item.completed::before {
+  background: #28a745; /* green */
+  box-shadow: 0 0 0 2px #28a745;
+}
+
+.timeline-item h4 {
+  margin: 0 0 5px;
+}
+
+.timeline-item p {
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+}
+
+</style>
+</head>
+<body>
+  <div class="navbar">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <img src="{{ url_for('static', filename='DOBS.png') }}" alt="Logo" style="width:40%;">
+    </div>
+    <div>
+      <a href="{{ url_for('public.set_language', lang='en') }}" class="btn btn-sm btn-outline-primary">English</a>
+
+
+      <span class="small">{{ current_user.name or current_user.username }} ({{ current_user.role }})</span>
+      <a href="javascript:void(0)" onclick="openPasswordModal()">تغيير كلمة المرور</a>
+      <a href="{{ url_for('auth.logout') }}">تسجيل الخروج</a>
+    </div>
+  </div>
+
+
+  <div class="container">
+    <div>
+      <h1>إدارة السائقين</h1>
+      <div class="muted">إدارة السائقين (قيد الانتظار & مكتمل).</div>
+    </div>
+    <div style="display: flex; column-gap: 18px;">
+    <div style="width: 100%;display: contents;">
+      <div style="width: 80%;  border-radius: 20px;padding: 20px;border: 1px solid #ccc;background-color: #60227338;">
+        <div class="tab-container" style="display:flex;">
+          <button class="tab-btn active" onclick="showTab('onboarding', this)">التحاق الموظفين الجدد</button>
+          <button class="tab-btn" onclick="showTab('offboarding', this)">إنهاء الخدمة</button>
+          <button class="tab-btn" onclick="showTab('onboarded', this)">تم دمجه بالكامل</button>
+          <button class="tab-btn" onclick="showTab('rejected', this)">السائقون المرفوضون</button>
+        </div>
+
+<div id="onboardingTab">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <h2>السائقون المخصصون لمدير العمليات</h2>
+
+  {% if drivers %}
+  <div class="driver-cards">
+    {% for driver in drivers %}
+    <div class="driver-card" onclick="openDriverModal(this)"
+         data-driver='{{ {
+             "id": driver.id,
+             "name": driver.name,
+             "iqama_number": driver.iqaama_number,
+             "iqama_expiry": driver.iqaama_expiry.strftime("%Y-%m-%d") if driver.iqaama_expiry else "",
+             "nationality": driver.nationality or "",
+             "mobile": driver.issued_mobile_number or driver.absher_number or "",
+             "previous_sponsor_number": driver.previous_sponsor_number or "",
+             "saudi_driving_license": driver.saudi_driving_license,
+             "iqama_card_upload": driver.iqama_card_upload or "",
+             "platform": driver.platform or "",
+             "city": driver.city or "",
+             "car_details": driver.car_details or "",
+             "assignment_date": driver.assignment_date.strftime("%Y-%m-%d") if driver.assignment_date else "",
+             "ops_manager_approved_at": driver.ops_manager_approved_at.strftime("%Y-%m-%d %H:%M") if driver.ops_manager_approved_at else ""
+         } | tojson | safe }}'>
+      <p><strong>:الاسم</strong> {{ driver.name }}</p>
+      <p><strong>الإقامة:</strong> {{ driver.iqaama_number }}</p>
+      <p class="small"><strong>المدينة:</strong> {{ driver.city or "N/A" }}</p>
+      <p class="small"><strong>المرحلة:</strong> {{ driver.onboarding_stage }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>لا يوجد سائقون في انتظار هذه المرحلة.</p>
+  {% endif %}
+</div>
+
+<!-- Driver Modal -->
+<div id="driverModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">تفاصيل السائق</h3>
+      <button class="close" onclick="closeDriverModal()">&times;</button>
+    </div>
+    <form id="driverForm" method="POST">
+      <div class="grid">
+        <div>
+          <label>الاسم الكامل</label><div class="value" id="d_name">—</div>
+          <label>الجنسية</label><div class="value" id="d_nationality">—</div>
+          <label>رقم الجوال</label><div class="value" id="d_mobile">—</div>
+          <label>الراعي السابق</label><div class="value" id="d_prev_sponsor">—</div>
+        </div>
+        <div>
+          <label>رقم الإقامة</label><div class="value" id="d_iqaama">—</div>
+          <label>انتهاء الإقامة</label><div class="value" id="d_iqaama_expiry">—</div>
+          <label>رخصة</label><div class="value" id="d_license">—</div>
+          <label>مدينة</label><div class="value" id="d_city">—</div>
+        </div>
+        <div class="full-row">
+          <label>ملاحظة</label>
+          <textarea class="approve-note" id="d_ops_note" name="ops_note" placeholder="Optional note"></textarea>
+          <br>
+          <label>صورة الإقامة / الهوية</label>
+          <div id="d_iqaama_img" class="value"></div>
+        </div>
+      </div>
+      <input type="hidden" id="driverIdHidden" name="driver_id">
+      <div style="margin-top:12px; display:flex; gap:10px;">
+        <button type="submit" class="btn" onclick="return confirmApprove()">✅ الموافقة والإرسال إلى الموارد البشرية</button>
+        <button type="button" class="btn reject" onclick="confirmReject()">❌ رفض</button>
+        <button type="button" class="btn secondary" onclick="closeDriverModal()">إغلاق</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+        
+<div id="offboardingTab" style="display:none; width: 100%;">
+  <h2>السائقون للخروج</h2>
+
+  <!-- Search Box -->
+  <div class="search-box" style="margin-bottom:12px;">
+    <input type="text" id="offboardingSearch" placeholder="Search driver by name or Iqama..."
+           oninput="filterOffboardingDrivers()"
+           style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc;">
+  </div>
+
+  <div class="driver-cards">
+    {% for driver in offboarding_drivers %}
+      <div class="driver-card offboarding-card {% if driver.records|length > 0 %}in-progress{% endif %}"
+           data-driver='{{ driver | tojson | safe }}'>
+        <h3>{{ driver.name }}</h3>
+        <p><strong>الإقامة:</strong> {{ driver.iqama_number }}</p>
+        <p><strong>المدينة/الفرع:</strong> {{ driver.city or 'N/A' }}</p>
+        <p><strong>تم طلب إنهاء الخدمة بواسطة:</strong> {{ driver.offboard_requested_by or 'N/A' }}</p>
+        <p><strong>سبب:</strong> {{ driver.offboard_reason or 'No reason provided' }}</p>
+        <p class="muted"><strong>تم الطلب في:</strong> {{ driver.offboard_requested_at or 'N/A' }}</p>
+
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          {% if driver.records|length == 0 %}
+            <!-- Show buttons if no offboarding started -->
+            <form action="{{ url_for('ops_manager.request_offboarding', driver_id=driver.id) }}" method="POST">
+              <button type="submit" class="btn view">طلب إنهاء الخدمة</button>
+            </form>
+            <button class="btn danger reject-offboarding-btn" data-driver-id="{{ driver.id }}" style="flex:1; background:red;">
+              رفض الطلب
+            </button>
+          {% else %}
+            <span style="color:orange; font-weight:bold;">جاري إنهاء إجراءات المغادرة</span>
+            <p class="small"><strong>المرحلة الحالية:</strong>
+              {{ driver.records[-1].status or 'N/A' }}
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <script>
+    function filterOffboardingDrivers() {
+      const query = (document.getElementById("offboardingSearch").value || "").toLowerCase();
+      document.querySelectorAll(".offboarding-card").forEach(card => {
+        const driver = JSON.parse(card.dataset.driver || '{}');
+        const haystack = (driver.name + " " + driver.iqaama_number).toLowerCase();
+        card.style.display = haystack.includes(query) ? "" : "none";
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const modal = document.getElementById("offboardingProgressModal");
+      const timelineContainer = document.getElementById("offboardingTimeline");
+      const closeModal = modal.querySelector(".close-modal");
+
+      closeModal.addEventListener("click", () => modal.style.display = "none");
+
+      // Reject Offboarding
+      document.querySelectorAll(".reject-offboarding-btn").forEach(btn => {
+        btn.addEventListener("click", function(e) {
+          e.stopPropagation();
+          const driverId = this.dataset.driverId;
+          const reason = prompt("Optional: Enter reason for rejection") || "";
+          if (!confirm("Are you sure you want to reject this offboarding request?")) return;
+
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = `/dashboard/ops/reject_offboarding/${driverId}`;
+          if (reason) {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "reason";
+            input.value = reason;
+            form.appendChild(input);
+          }
+          document.body.appendChild(form);
+          form.submit();
+        });
+      });
+
+      // Open modal for drivers with offboarding records
+      document.querySelectorAll(".offboarding-card.in-progress").forEach(card => {
+        card.addEventListener("click", () => {
+          const driver = JSON.parse(card.dataset.driver || '{}');
+          if (!driver || !driver.records || driver.records.length === 0) return;
+
+          const record = driver.records[0]; // Assuming one offboarding record per driver
+          const stages = [
+            {key:"ops_supervisor", label:"Ops Supervisor", clearedAt: record.ops_supervisor_cleared_at, note: record.ops_supervisor_note},
+            {key:"fleet", label:"Fleet", clearedAt: record.fleet_cleared_at, note: record.fleet_damage_report},
+            {key:"finance", label:"Finance", clearedAt: record.finance_cleared_at, note: record.finance_note},
+            {key:"hr", label:"HR", clearedAt: record.hr_cleared_at, note: record.hr_note}
+          ];
+
+          // Determine which stages to display based on current stage
+          const currentStageIndex = stages.findIndex(s => (s.clearedAt === null || s.clearedAt === undefined) && s.note !== undefined);
+          const lastIndex = currentStageIndex === -1 ? stages.length - 1 : currentStageIndex;
+
+          let html = `<p><strong>سائق:</strong> ${driver.name} (${driver.iqama_number})</p>
+                      <p><strong>مطلوب من قبل:</strong> ${driver.offboard_requested_by}</p>
+                      <p><strong>تم الطلب في:</strong> ${driver.offboard_requested_at || 'N/A'}</p>
+                      <ul class="timeline">`;
+
+          for (let i = 0; i <= lastIndex; i++) {
+            const s = stages[i];
+            const status = s.clearedAt ? "Completed" : "Pending";
+            html += `<li class="timeline-item ${status.toLowerCase()}">
+                       <h4>${s.label}</h4>
+                       <p><strong>ملاحظات:</strong> ${s.note || ''}</p>
+                       <p><strong>تاريخ الإكمال:</strong> ${s.clearedAt || 'Pending'}</p>
+                       <p><strong>الحالة:</strong> ${status}</p>
+                     </li>`;
+          }
+
+          // If last stage is HR or onboarding completed, show Offboarding Completed
+          if (record.hr_cleared && record.hr_cleared === true) {
+            const completedAt = record.updated_at || 'N/A';
+            html += `<li class="timeline-item completed">
+                       <h4>تم إكمال إنهاء الخدمة</h4>
+                       <p><strong>تاريخ الإكمال:</strong> ${completedAt}</p>
+                     </li>`;
+          }
+
+          html += `</ul>`;
+          timelineContainer.innerHTML = html;
+          modal.style.display = "block";
+        });
+      });
+    });
+  </script>
+</div>
+
+<!-- Modal -->
+<div id="offboardingProgressModal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width:700px; margin:auto; padding:20px; border-radius:8px; background:white; position:relative;">
+    <span class="close-modal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:24px;">&times;</span>
+    <h2>تقدم إنهاء الخدمة</h2>
+    <div id="offboardingTimeline" style="margin-top:20px;"></div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+<!-- ================== REJECTED TAB ================== -->
+<div id="rejectedTab" style="width: 100%; display:none;">
+  <h2>السائقون المرفوضون</h2>
+  {% if rejected_drivers %}
+    <div class="driver-cards">
+      {% for driver in rejected_drivers %}
+      <div class="driver-card"
+           data-search="{{ driver.name|lower }} {{ driver.iqaama_number|lower }}">
+        <h3>{{ driver.name }}</h3>
+        <p><strong>الإقامة:</strong> {{ driver.iqaama_number }}</p>
+        <p class="small"><strong>المدينة:</strong> {{ driver.city or "N/A" }}</p>
+        <p class="small"><strong>تاريخ الرفض:</strong> {{ driver.ops_manager_rejected_at.strftime('%Y-%m-%d') if driver.ops_manager_rejected_at else 'N/A' }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>لا يوجد سائقون مرفوضون.</p>
+  {% endif %}
+</div>
+
+<!-- ===================== FULLY ONBOARDED TAB ===================== -->
+<div id="onboardedTab" style="display:none;">
+  <h2>جميع السائقين المكتمل تسجيلهم</h2>
+  <div class="search-box" style="margin-bottom:12px;">
+    <input type="text" id="onboardedSearch" placeholder="Search driver..." oninput="filterOnboardedDrivers()" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc;">
+  </div>
+  <div class="driver-cards">
+    {% if fully_onboarded_drivers %}
+      {% for driver in fully_onboarded_drivers %}
+      <div class="driver-card" 
+           data-search="{{ driver.name|lower }} {{ driver.iqaama_number|lower }}"
+           data-driver='{{ {
+              "id": driver.id,
+              "name": driver.name,
+              "iqama_number": driver.iqaama_number or "",
+              "iqaama_expiry": driver.iqaama_expiry.strftime("%Y-%m-%d") if driver.iqaama_expiry else "",
+              "nationality": driver.nationality or "",
+              "absher_number": driver.absher_number or "",
+              "previous_sponsor_number": driver.previous_sponsor_number or "",
+              "platform": driver.platform or "",
+              "platform_id": driver.platform_id or "",
+              "issued_mobile_number": driver.issued_mobile_number or "",
+              "issued_device_id": driver.issued_device_id or "",
+              "mobile_issued": driver.mobile_issued or false,
+              "car_details": driver.car_details or "",
+              "assignment_date": driver.assignment_date.strftime('%Y-%m-%d') if driver.assignment_date else "",
+              "tamm_authorized": driver.tamm_authorized or false,
+              "iqama_card_upload": driver.iqama_card_upload or "",
+              "tamm_authorization_ss": driver.tamm_authorization_ss or "",
+              "transfer_fee_receipt": driver.transfer_fee_receipt or "",
+              "sponsorship_transfer_proof": driver.sponsorship_transfer_proof or "",
+              "ops_manager_approved_at": driver.ops_manager_approved_at.strftime('%Y-%m-%d %H:%M') if driver.ops_manager_approved_at else "",
+              "hr_approved_at": driver.hr_approved_at.strftime('%Y-%m-%d %H:%M') if driver.hr_approved_at else "",
+              "ops_supervisor_approved_at": driver.ops_supervisor_approved_at.strftime('%Y-%m-%d %H:%M') if driver.ops_supervisor_approved_at else "",
+              "fleet_manager_approved_at": driver.fleet_manager_approved_at.strftime('%Y-%m-%d %H:%M') if driver.fleet_manager_approved_at else "",
+              "finance_approved_at": driver.finance_approved_at.strftime('%Y-%m-%d %H:%M') if driver.finance_approved_at else "",
+              "transfer_fee_paid": driver.transfer_fee_paid or false,
+              "transfer_fee_amount": driver.transfer_fee_amount or "",
+              "transfer_fee_paid_at": driver.transfer_fee_paid_at.strftime('%Y-%m-%d') if driver.transfer_fee_paid_at else ""
+            } | tojson | safe }}'>
+        <h3>{{ driver.name }}</h3>
+        <p class="small"><strong>الإقامة:</strong> {{ driver.iqaama_number or '' }}</p>
+        <p class="small"><strong>سيارة:</strong> {{ driver.car_details or "N/A" }}</p>
+        <p class="small"><strong>منصة:</strong> {{ driver.platform or "N/A" }}</p>
+        <button class="btn view" onclick="openViewModal(event, this)">عرض</button>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted small" style="text-align:center;">لم يتم العثور على سائقين مشتركين بالكامل.</p>
+    {% endif %}
+  </div>
+
+  <script>
+    function filterOnboardedDrivers() {
+      const query = (document.getElementById("onboardedSearch").value || "").toLowerCase();
+      document.querySelectorAll("#onboardedTab .driver-card").forEach(card => {
+        const haystack = card.dataset.search || "";
+        card.style.display = haystack.includes(query) ? "" : "none";
+      });
+    }
+  </script>
+</div>
+
+
+<script>
+function safeParse(data) {
+    try { return JSON.parse(data); }
+    catch(e) { console.error("JSON parse error:", e); return {}; }
+}
+
+function openDriverModal(card){
+    const d = safeParse(card.dataset.driver);
+
+    document.getElementById("modalTitle").innerText = d.name || "Driver details";
+    document.getElementById("d_name").innerText = d.name || "—";
+    document.getElementById("d_iqaama").innerText = d.iqama_number || "—";
+    document.getElementById("d_iqaama_expiry").innerText = d.iqama_expiry || "—";
+    document.getElementById("d_nationality").innerText = d.nationality || "—";
+    document.getElementById("d_mobile").innerText = d.mobile || "—";
+    document.getElementById("d_prev_sponsor").innerText = d.previous_sponsor_number || "—";
+    document.getElementById("d_license").innerText = d.saudi_driving_license ? "✅ نعم" : "❌ لا";
+    document.getElementById("d_city").innerText = d.city || "—";
+
+
+    const img = document.getElementById("d_iqaama_img");
+    img.innerHTML = "";
+    if(d.iqama_card_upload){
+        const i = document.createElement("img");
+        i.src = d.iqama_card_upload.startsWith("static/") ? `/${d.iqama_card_upload}` : `/static/uploads/${d.iqama_card_upload}`;
+        i.className = "upload-thumb";
+        img.appendChild(i);
+    }
+
+    document.getElementById("driverIdHidden").value = d.id;
+    document.getElementById("driverForm").dataset.driverId = d.id;
+    document.getElementById("driverModal").classList.add("show");
+}
+
+function closeDriverModal(){
+    document.getElementById("driverModal").classList.remove("show");
+}
+
+
+function confirmReject(){
+  const driverId=document.getElementById("driverIdHidden").value;
+  if(!driverId){alert("Driver ID missing.");return;}
+  if(confirm("Reject this driver?")){
+    const form=document.getElementById("driverForm");
+    form.action=`/dashboard/ops/reject_driver/${driverId}`;
+    form.method="POST";
+    form.submit();
+  }
+}
+
+window.addEventListener("click",e=>{
+  if(e.target.classList.contains("modal")) e.target.classList.remove("show");
+});
+window.addEventListener("keydown",e=>{
+  if(e.key==="Escape") document.querySelectorAll(".modal.show").forEach(m=>m.classList.remove("show"));
+});
+
+function showTab(tab,btn){
+  ["onboarding","offboarding","onboarded","rejected"].forEach(id=>{
+    document.getElementById(id+"Tab").style.display=(id===tab)?"block":"none";
+  });
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  if(btn) btn.classList.add("active");
+}
+
+
+function confirmApprove(){
+  const driverForm = document.getElementById("driverForm");
+  const driverId = driverForm.dataset.driverId || document.getElementById("driverIdHidden").value;
+  if (!driverId) { alert("رقم تعريف السائق مفقود."); return false; }
+  if (!confirm("هل توافق على هذا السائق وإرساله إلى قسم الموارد البشرية؟")) return false;
+  driverForm.action = `/dashboard/ops/approve_driver/${driverId}`;
+  driverForm.method = "POST";
+  return true;
+}
+
+
+
+function confirmReject() {
+  const driverForm = document.getElementById("driverForm");
+  const driverId = driverForm.dataset.driverId || document.getElementById("driverIdHidden").value;
+
+  if (!driverId) {
+    alert("لم يتم العثور على معرف السائق.");
+    return false;
+  }
+
+  if (confirm("هل أنت متأكد أنك تريد رفض هذا السائق؟")) {
+    driverForm.action = `/dashboard/ops/reject_driver/${driverId}`;
+    driverForm.method = "POST";
+    driverForm.submit();
+  }
+}
+
+
+
+
+
+
+
+    function escapeHTML(str){ if(!str) return ''; return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    
+    function openViewModal(e, btn){
+      e.stopPropagation();
+      try{
+        const card = btn.closest('.driver-card');
+        const data = JSON.parse(card.dataset.driver);
+        renderViewModal(data);
+        document.getElementById('viewModal').classList.add('show');
+      } catch(err){
+        console.error('خطأ في فتح نافذة برنامج التشغيل:', err, card.dataset.driver);
+        alert('غير قادر على فتح تفاصيل التعريف — تحقق من وحدة التحكم.');
+      }
+    }
+
+    function renderViewModal(d){
+      let html='<div style="display:flex;flex-direction:column;gap:12px;">';
+      html+=`<h3>${escapeHTML(d.name)}</h3>`;
+      html+=`<p><strong>الإقامة:</strong> ${escapeHTML(d.iqama_number)}</p>`;
+      html+=`<p><strong>مركبة:</strong> ${escapeHTML(d.car_details)}</p>`;
+      html+=`<p><strong>منصة:</strong> ${escapeHTML(d.platform)}</p>`;
+      html+=`<p><strong>تم تفويضه من قبل تم:</strong> ${d.tamm_authorized ? '✅ Yes':'❌ No'}</p>`;
+
+      // Images
+      if(d.iqama_card_upload || d.tamm_authorization_ss || d.transfer_fee_receipt || d.sponsorship_transfer_proof){
+        html+='<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+        if(d.iqama_card_upload) html+=`<div><label class="small">بطاقة إقامة</label><br><img src="/static/uploads/${encodeURIComponent(d.iqama_card_upload)}" class="upload-thumb"></div>`;
+        if(d.tamm_authorization_ss) html+=`<div><label class="small">لقطة شاشة تم</label><br><img src="/static/uploads/${encodeURIComponent(d.tamm_authorization_ss)}" class="upload-thumb"></div>`;
+        if(d.transfer_fee_receipt) html+=`<div><label class="small">إيصال رسوم التحويل</label><br><img src="/static/uploads/${encodeURIComponent(d.transfer_fee_receipt)}" class="upload-thumb"></div>`;
+        if(d.sponsorship_transfer_proof) html+=`<div><label class="small">إثبات نقل الكفالة</label><br><img src="/static/uploads/${encodeURIComponent(d.sponsorship_transfer_proof)}" class="upload-thumb"></div>`;
+        html+='</div>';
+      }
+
+      html+=`<p class="meta small">Assigned: ${d.assignment_date || ''}</p>`;
+      html+='</div>';
+      document.getElementById('viewContent').innerHTML = html;
+    }
+
+    function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+    function showTab(tab, btn){
+      document.getElementById("onboardingTab").style.display = tab==="onboarding"?"block":"none";
+      document.getElementById("offboardingTab").style.display = tab==="offboarding"?"block":"none";
+      document.getElementById("onboardedTab").style.display = tab==="onboarded"?"block":"none";
+      document.getElementById("rejectedTab").style.display = tab==="rejected"?"block":"none";  // ✅ Add this
+      document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+      if(btn) btn.classList.add("active");
+    }
+
+
+    function openPasswordModal(){ document.getElementById('passwordModal').classList.add('show'); }
+
+    function openModalById(id){ document.getElementById(id).classList.toggle('show'); }
+
+    function filterOffboardingDrivers(){
+      const val = document.getElementById('offboardingSearch').value.toLowerCase();
+      document.querySelectorAll('.offboarding-card').forEach(c=>{
+        c.style.display = c.dataset.search.includes(val)?'block':'none';
+      });
+    }
+
+    function filterOnboardedDrivers(){
+      const val = document.getElementById('onboardedSearch').value.toLowerCase();
+      document.querySelectorAll('#onboardedTab .driver-card').forEach(c=>{
+        const d = JSON.parse(c.dataset.driver);
+        const name = (d.name || '').toLowerCase();
+        const iqama = (d.iqaama_number || '').toLowerCase();
+        c.style.display = (name.includes(val) || iqama.includes(val))?'block':'none';
+      });
+    }
+  </script>
+
+
+        <!-- ========== VIEW DRIVER MODAL ========== -->
+        <div id="viewModal" class="modal" aria-hidden="true">
+          <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="viewModalTitle">
+            <div class="modal-header">
+              <h2 id="viewModalTitle">Driver Details</h2>
+              <button class="close" onclick="closeModal('viewModal')">&times;</button>
+            </div>
+            <div id="viewContent"></div>
+          </div>
+        </div>
+
+      </div>
+      <div class="col-lg-12" style="width: 20%;">
+            <div class="single_element">
+                <div class="quick_activity">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="quick_activity_wrap" style="display: grid;grid-template-columns: repeat(1, 1fr);">
+                                <div style="display: grid;grid-gap: 10px;grid-template-columns: repeat(1, 1fr);">
+                                  <div class="single_quick_activity" style=" padding: 10px 20px;">
+                                      <h4>السائقون في تبويب الانضمام:</h4>
+                                      <h3> <span class="counter">{{ count_onboarding_ops or 0 }}</span> </h3>
+                                  </div>
+                                  <div class="single_quick_activity" style=" padding: 10px 20px;">
+                                      <h4>السائقون في تبويب إنهاء الخدمة:</h4>
+                                      <h3><span class="counter">{{ count_offboarding_requested or 0 }}</span> </h3>
+                                  </div>
+                                </div>  
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+      </div>
+    </div>
+  </div>
+{% include 'includes/csrf_auto.html' %}
+</body>
+</html>

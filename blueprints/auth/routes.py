@@ -5,7 +5,6 @@ from sqlalchemy.exc import OperationalError
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
 import re
-from utils.passwords import verify_password
 import secrets
 
 from forms.auth import LoginForm
@@ -16,6 +15,7 @@ from flask_mail import Message
 from services.rbac import user_role_names
 from services import impersonation
 from services.impersonation import ImpersonationError
+from utils.passwords import verify_password_hash
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -71,7 +71,7 @@ def login():
             flash("Account locked. Try again later.", "danger")
             return render_template("login.html", form=form), 429
 
-        if not user or not verify_password(user.password, password):
+        if not user or not verify_password_hash(user.password, password):
             if user:
                 locked = _register_failed_login(user)
                 if locked:

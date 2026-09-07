@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>لوحة مدير المالية</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='Home_09_Onepage_files/logo1.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Finance_files/bootstrap1.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Finance_files/style1.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Finance_files/default.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard-common.css') }}">
+  <style>
+    /* ---------- layout & utility ---------- */
+    :root{
+      --bg:#e8eef5; --nav:#1a1a2e; --accent:#3498db; --ok:#27ae60; --danger:#e74c3c;
+      --primary:#602273; --primary-dark:#450f5c; --text-dark:#2c3e50; --text-light:#555;
+      --card-bg:#ffffff; --border:#cbd5e1; --shadow:0 2px 8px rgba(0,0,0,0.12);
+    }
+    *{box-sizing:border-box}
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; direction:rtl; -webkit-font-smoothing:antialiased; }
+    .navbar { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); padding: 15px 20px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow:var(--shadow); }
+    .navbar a { color: white; margin: 0 10px; text-decoration: none; font-weight: 600; cursor: pointer; background:rgba(255,255,255,0.1); padding:8px 14px; border-radius:6px; transition:all 0.3s; }
+    .navbar a:hover { background:rgba(255,255,255,0.2); }
+    .container { padding: 24px; }
+    h2 { margin-top: 20px; color: var(--text-dark); font-weight:600; }
+    .search-box { margin: 10px 0 15px; }
+    .search-box input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 2px solid var(--border); font-size:14px; transition:border 0.3s; text-align:right; }
+    .search-box input:focus { outline:none; border-color:var(--primary); }
+
+    .columns { display: flex; gap: 20px; }
+    .column { flex: 1; }
+
+    .driver-card { background: var(--card-bg); padding: 16px; border-radius: 10px; box-shadow: var(--shadow); margin-bottom: 14px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border:1px solid var(--border); }
+    .driver-card:hover { transform: scale(1.02); background: #ffe6e6; box-shadow:0 4px 16px rgba(0,0,0,0.15); }
+    .driver-name { font-size: 17px; font-weight: 600; color: var(--text-dark); margin: 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+    .driver-iqama { margin: 6px 0; color: var(--text-light); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); justify-content: center; align-items: center; z-index: 999; }
+    .modal.show { display: flex; }
+    .modal-content { background: var(--card-bg); padding: 24px; border-radius: 12px; width: 680px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 50px rgba(0,0,0,0.25); direction:rtl; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom:2px solid var(--border); padding-bottom:12px; }
+    .modal-header h2 { margin:0; }
+    .close { cursor: pointer; font-size: 28px; font-weight: bold; color:var(--text-dark); transition:color 0.3s; }
+    .close:hover { color:#e74c3c; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .image-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; grid-column: 1 / -1; }
+    label { display: block; margin: 8px 0 6px; font-weight: 600; font-size: 14px; color: var(--text-dark); text-align:right; }
+    .value { font-size: 14px; color: var(--text-dark); margin-bottom: 8px; text-align:right; }
+
+    input[type="text"], input[type="number"], input[type="datetime-local"], input[type="date"], select, textarea {
+      width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: 8px; box-sizing: border-box; font-size:14px; transition:border 0.3s; text-align:right;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, input[type="datetime-local"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
+      outline:none; border-color:var(--primary);
+    }
+    input[readonly] { background: #f5f5f5; }
+
+    .approval-info { font-size: 14px; color: var(--text-dark); background: #d4edda; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-weight:600; border:2px solid #28a745; text-align:right; }
+    .flash-message { padding: 14px 16px; margin: 10px 0; border-radius: 8px; font-weight: 600; text-align:right; }
+    .flash-success { background: #d4edda; color: #155724; border:2px solid #28a745; }
+    .flash-danger { background: #f8d7da; color: #721c24; border:2px solid #dc3545; }
+    .tab-btn { background:#f1f5f9; border:2px solid var(--border); padding:10px 16px; margin-left:8px; border-radius:8px; cursor:pointer; font-weight:600; color:var(--text-light); transition:all 0.3s; }
+    .tab-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .tab-btn:hover { background:#e2e8f0; }
+    .btn { background: #27ae60; color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition:all 0.3s; box-shadow:0 4px 12px rgba(39,174,96,0.3); }
+    .btn:hover { background:#1e8449; transform:translateY(-2px); box-shadow:0 6px 16px rgba(39,174,96,0.4); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .completed-card { background: #eaf3fc; }
+    .hidden { display: none !important; }
+
+    img.receipt-thumb { max-width: 100%; margin-top: 8px; border-radius: 8px; box-shadow: var(--shadow); max-height: 200px; object-fit: contain; }
+    .small { font-size: 14px; color: var(--text-light); }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div style="display: contents;">
+      <img src="{{ url_for('static', filename='DOBS.png') }}" alt="Logo" style="width:12%;">
+      <div>
+        <a href="{{ url_for('public.set_language', lang='en') }}" class="btn btn-sm btn-outline-primary">English</a>
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
+        <a href="javascript:void(0)" onclick="openPasswordModal()">تغيير كلمة المرور</a>
+        <span>{{ current_user.name or current_user.username }} ({{ current_user.designation }})</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div>
+      <h1>إدارة السائقين</h1>
+      <div style="margin-bottom: 20px;" class="muted">إدارة السائقين (قيد الانتظار & مكتمل).</div>
+    </div>
+
+    <div style="display: flex; column-gap: 18px;">
+      <div style="width: 80%; border-radius: 20px; padding: 20px; border: 1px solid #ccc; background-color: #60227338;">
+        <div class="tab-container" style="display: flex;">
+          <button class="tab-btn active" onclick="showTab('onboarding', event)" style="width: 25%;">إدماج الموظفين الجدد</button>
+          <button class="tab-btn" onclick="showTab('offboarding', event)" style="width: 25%;">إنهاء الخدمة</button>
+        </div>
+
+        <!-- Onboarding Tab -->
+        <div id="onboardingTab">
+          <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <div class="columns">
+              <!-- Pending Finance Approvals -->
+              <div class="column">
+                <h4>في انتظار الموافقات المالية</h4>
+                <div class="search-box">
+                  <input type="text" id="pendingSearch" value="{{ q or '' }}" placeholder="جارٍ البحث عن السائقين المعلقين..." oninput="filterDrivers('pending')">
+                </div>
+                {% if pending_drivers %}
+                <div id="pendingDrivers">
+                  {% for driver in pending_drivers %}
+                  <div class="driver-card" onclick="openModal(this)"
+                    data-driver='{{ {
+                      "id": driver.id,
+                      "name": driver.name|default(""),
+                      "iqaama_number": driver.iqaama_number|default(""),
+                      "iqaama_expiry": (driver.iqaama_expiry|string) | default(''),
+                      "nationality": driver.nationality|default(""),
+                      "absher_number": driver.absher_number|default(""),
+                      "previous_sponsor_number": driver.previous_sponsor_number|default(""),
+                      "saudi_driving_license": driver.saudi_driving_license|default(false),
+                      "issued_mobile_number": driver.issued_mobile_number|default(""),
+                      "issued_device_id": driver.issued_device_id|default(""),
+                      "mobile_issued": driver.mobile_issued|default(false),
+                      "car_details": driver.car_details|default(""),
+                      "assignment_date": driver.assignment_date.strftime("%Y-%m-%d") if driver.assignment_date else "",
+                      "tamm_authorized": driver.tamm_authorized|default(false),
+                      "tamm_authorization_ss": driver.tamm_authorization_ss|default(""),
+                      "iqama_card_upload": driver.iqama_card_upload|default(""),              
+                      "ops_manager_approved_at": driver.ops_manager_approved_at.strftime("%Y-%m-%d %H:%M") if driver.ops_manager_approved_at else "",
+                      "hr_approved_at": driver.hr_approved_at.strftime("%Y-%m-%d %H:%M") if driver.hr_approved_at else "",
+                      "ops_supervisor_approved_at": driver.ops_supervisor_approved_at.strftime("%Y-%m-%d %H:%M") if driver.ops_supervisor_approved_at else "",
+                      "fleet_manager_approved_at": driver.fleet_manager_approved_at.strftime("%Y-%m-%d %H:%M") if driver.fleet_manager_approved_at else "",
+                      "finance_approved_at": driver.finance_approved_at.strftime("%Y-%m-%d %H:%M") if driver.finance_approved_at else "",
+                      "transfer_fee_paid": driver.transfer_fee_paid|default(false),
+                      "transfer_fee_amount": driver.transfer_fee_amount if driver.transfer_fee_amount is not none else 0,
+                      "transfer_fee_paid_at": driver.transfer_fee_paid_at.strftime("%Y-%m-%dT%H:%M") if driver.transfer_fee_paid_at else "",
+                      "transfer_fee_receipt": driver.transfer_fee_receipt|default("")
+                    } | tojson | safe }}'>
+                    <p class="driver-name">{{ driver.name }}</p>
+                    <p class="driver-iqama"><strong>الإقامة:</strong> {{ driver.iqaama_number }}</p>
+                    <p class="small"><strong>المرحلة:</strong> {{ driver.onboarding_stage }}</p>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <p>لا يوجد سائقون بانتظار موافقة التمويل.</p>
+                {% endif %}
+              </div>
+
+              <!-- Completed Finance Approvals -->
+              <div class="column">
+                <h4>الموافقات المالية المكتملة</h4>
+                <div class="search-box">
+                  <input type="text" id="completedSearch" value="{{ q or '' }}" placeholder="تمت عملية البحث عن برامج التشغيل..." oninput="filterDrivers('completed')">
+                </div>
+                {% if completed_drivers %}
+                <div id="completedDrivers">
+                  {% for driver in completed_drivers %}
+                  <div class="driver-card completed-card" onclick="openModal(this,true)"
+                    data-driver='{{ {
+                      "id": driver.id, 
+                      "name": driver.name,
+                      "iqaama_number": driver.iqaama_number,
+                      "iqaama_expiry": (driver.iqaama_expiry|string) | default(''),
+                      "saudi_driving_license": (driver.saudi_driving_license|default(false)),
+                      "nationality": driver.nationality or "",
+                      "absher_number": driver.absher_number or "",
+                      "previous_sponsor_number": driver.previous_sponsor_number or "",
+                      "iqama_card_upload": driver.iqama_card_upload or "",
+                      "issued_mobile_number": driver.issued_mobile_number or "",
+                      "issued_device_id": driver.issued_device_id or "",
+                      "mobile_issued": (driver.mobile_issued|default(false)),
+                      "car_details": driver.car_details or "",
+                      "assignment_date": driver.assignment_date.strftime("%Y-%m-%d") if driver.assignment_date else "",
+                      "tamm_authorized": (driver.tamm_authorized|default(false)),
+                      "tamm_authorization_ss": driver.tamm_authorization_ss or "",
+                      "ops_manager_approved_at": driver.ops_manager_approved_at.strftime("%Y-%m-%d %H:%M") if driver.ops_manager_approved_at else "",
+                      "hr_approved_at": driver.hr_approved_at.strftime("%Y-%m-%d %H:%M") if driver.hr_approved_at else "",
+                      "ops_supervisor_approved_at": driver.ops_supervisor_approved_at.strftime("%Y-%m-%d %H:%M") if driver.ops_supervisor_approved_at else "",
+                      "fleet_manager_approved_at": driver.fleet_manager_approved_at.strftime("%Y-%m-%d %H:%M") if driver.fleet_manager_approved_at else "",
+                      "finance_approved_at": driver.finance_approved_at.strftime("%Y-%m-%d %H:%M") if driver.finance_approved_at else "",
+                      "transfer_fee_paid": (driver.transfer_fee_paid|default(false)),
+                      "transfer_fee_amount": (driver.transfer_fee_amount if driver.transfer_fee_amount is not none else ""),
+                      "transfer_fee_paid_at": (driver.transfer_fee_paid_at.strftime("%Y-%m-%dT%H:%M") if driver.transfer_fee_paid_at else ""),
+                      "transfer_fee_receipt": driver.transfer_fee_receipt or ""
+                    } | tojson | safe }}'>
+                    <p class="driver-name">{{ driver.name }}</p>
+                    <p class="driver-iqama"><strong>الإقامة:</strong> {{ driver.iqaama_number }}</p>
+                    <p class="small"><strong>سيارة:</strong> {{ driver.car_details or "N/A" }}</p>
+                    <p class="small"><strong>تمت الموافقة المالية:</strong> {{ driver.finance_approved_at.strftime("%Y-%m-%d %H:%M") if driver.finance_approved_at else "N/A" }}</p>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <p>لا يوجد سائقون تم الموافقة عليهم بعد.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Driver Modal -->
+        <div id="driverModal" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 id="driverName">تفاصيل السائق</h3>
+              <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+
+            <div class="modal-body">
+              <div class="driver-info" id="driverDetails"></div>
+              <div class="driver-docs" id="driverDocuments"></div>
+            </div>
+
+            <!-- Finance Form -->
+            <form id="financeForm" method="POST" enctype="multipart/form-data" style="margin-top:15px;" required>
+              <h4>المالية — رسوم التحويل / الدفع</h4>
+              <label><input type="checkbox" id="transfer_fee_paid" name="transfer_fee_paid" required> Transfer / Transfer Fee Paid</label>
+              <label>مبلغ</label>
+              <input type="number" id="transfer_fee_amount" name="transfer_fee_amount" step="0.01" min="0" required>
+              <label>تم الدفع في (التاريخ والوقت)</label>
+              <input type="datetime-local" id="transfer_fee_paid_at" name="transfer_fee_paid_at" required>
+              <label>إيصال</label>
+              <input type="file" id="transfer_fee_receipt" name="transfer_fee_receipt" accept=".png,.jpg,.jpeg,.pdf" required>
+              <div style="margin-top:10px;">
+                <button type="submit" class="btn" id="financeSubmit">✅ وضع علامة كموافق عليه من المالية ونهائي من الموارد البشرية</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Password Modal -->
+        <div id="passwordModal" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>تغيير كلمة المرور</h3>
+              <span class="close" onclick="closePasswordModal()">&times;</span>
+            </div>
+            <form method="POST" action="{{ url_for('finance.change_password') }}">
+              <label>كلمة المرور الحالية</label>
+              <input type="password" name="current_password" required>
+              <label>كلمة مرور جديدة</label>
+              <input type="password" name="new_password" required>
+              <label>تأكيد كلمة المرور</label>
+              <input type="password" name="confirm_password" required>
+              <button type="submit" class="btn" style="margin-top:10px;">تحديث كلمة المرور</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Offboarding Tab -->
+        <div id="offboardingTab" style="display:none;">
+          <div class="container">
+            <h4>السائقون في انتظار إنهاء التمويل</h4>
+            {% if offboarding_requests %}
+              {% for record in offboarding_requests %}
+              <div class="driver-card"
+                data-id="{{ record.id }}"
+                data-name="{{ record.driver.name }}"
+                data-iqama="{{ record.driver.iqaama_number }}"
+                data-tamm="{{ record.driver.tamm_authorized|default(false) }}"
+                data-fleet-report="{{ record.fleet_damage_report|default('') }}"
+                data-fleet-cost="{{ record.fleet_damage_cost|default('') }}"
+                data-finance-note="{{ record.finance_note|default('') }}"
+                data-finance-adjustments="{{ record.finance_adjustments|default('') }}"
+                onclick="openFinanceOffboardingModal(this)">
+                <h3>{{ record.driver.name }}</h3>
+                <p><strong>الإقامة:</strong> {{ record.driver.iqaama_number }}</p>
+                <p><strong>المرحلة:</strong> {{ record.status }}</p>
+              </div>
+              {% endfor %}
+            {% else %}
+              <p>لا توجد طلبات إنهاء خدمة معلقة لدى قسم المالية.</p>
+            {% endif %}
+
+            <!-- Finance Offboarding Modal -->
+            <div id="financeOffboardingModal" class="modal">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h3 id="financeOffboardingTitle">إجراءات إنهاء الخدمة المالية</h3>
+                  <span class="close" onclick="closeFinanceOffboardingModal()">&times;</span>
+                </div>
+
+                <div id="offboardingDriverDetails" style="margin-bottom:10px;"></div>
+
+                <div id="fleetSection" style="background:#f8f9fa; padding:10px; margin-bottom:10px; border-radius:6px;">
+                  <h4>تقرير مدير الأسطول (للقراءة فقط)</h4>
+                  <label>تقرير الأضرار</label>
+                  <input type="text" id="fleet_damage_report" readonly>
+                  <label>تكلفة الضرر (ريال سعودي)</label>
+                  <input type="text" id="fleet_damage_cost" readonly>
+                </div>
+
+                <form id="financeOffboardingForm" method="POST" enctype="multipart/form-data">
+                  <label>تعديلات مالية (ريال سعودي)</label>
+                  <input type="number" name="finance_adjustments" required>
+                  <label>ملاحظات مالية</label>
+                  <textarea name="finance_note" rows="3"></textarea>
+                  <label>تحميل الفاتورة / إثبات التسوية</label>
+                  <input type="file" name="finance_invoice_file" accept=".png,.jpg,.jpeg,.pdf">
+                  <div style="margin-top:10px;">
+                    <button type="submit" class="btn" id="financeOffboardingSubmit">✅ مسح وإرسال إلى الموارد البشرية</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+              <!-- Quick Stats -->
+        <div class="col-lg-12" style="width: 20%;">
+          <div class="single_element">
+            <div class="quick_activity">
+              <div class="row">
+                <div class="col-12">
+                  <div class="quick_activity_wrap" style="display: grid;grid-template-columns: repeat(1, 1fr);">
+                    <div style="display: grid; grid-gap: 10px; grid-template-columns: repeat(1, 1fr);">
+                      <div class="single_quick_activity" style="padding: 10px 20px;">
+                        <h4>السائقون في تبويب الانضمام:</h4>
+                        <h3><span class="counter">{{ total_drivers or 0 }}</span></h3>
+                      </div>
+                      <div class="single_quick_activity" style="padding: 10px 20px;">
+                        <h4>السائقون في تبويب إنهاء الخدمة:</h4>
+                        <h3><span class="counter">{{ total_users or 0 }}</span></h3>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+<script>
+  // =========================
+  // Open Driver Modal
+  // =========================
+  function openModal(card, readOnly=false) {
+    const d = JSON.parse(card.dataset.driver);
+    document.getElementById("driverName").innerText = d.name || "Driver Details";
+
+    let html = "";
+    function row(label, value) {
+      return `<div><label>${label}</label><div class="value">${value || "—"}</div></div>`;
+    }
+      html += row("الاسم الكامل", d.name);
+      html += row("رقم الإقامة", d.iqaama_number);
+      html += row("انتهاء الإقامة", d.iqaama_expiry);
+      html += row("الجنسية", d.nationality);
+      html += row("رقم جوال أبشر", d.absher_number);
+      html += row("العدد السابق للرعاة", d.previous_sponsor_number);
+
+      html += row("تمت موافقة المدير العملياتي", d.ops_manager_approved_at);
+      html += row("وافقه قسم الموارد البشرية", d.hr_approved_at);
+      html += row("تمت الموافقة من مشرف العمليات", d.ops_supervisor_approved_at);
+      html += row("تمت الموافقة من قبل مدير الأسطول", d.fleet_manager_approved_at);
+
+
+    // Show uploaded files if available
+    if (d.iqama_card_upload || d.tamm_authorization_ss || d.transfer_fee_receipt) {
+      html += `<div class="image-row">`;
+      if (d.iqama_card_upload) html += `<div><label>بطاقة إقامة</label><img src="/${d.iqama_card_upload}" class="receipt-thumb"></div>`;
+      if (d.tamm_authorization_ss) html += `<div><label>تفويض تم</label><img src="/static/uploads/${d.tamm_authorization_ss}" class="receipt-thumb"></div>`;
+      if (d.transfer_fee_receipt) html += `<div><label>إثبات التحويل</label><a href="/static/uploads/${d.transfer_fee_receipt}" target="_blank"><img src="/static/uploads/${d.transfer_fee_receipt}" class="receipt-thumb"></a></div>`;
+      html += `</div>`;
+    }
+
+    document.getElementById("driverDetails").innerHTML = html;
+
+    // Update form action
+    document.getElementById("financeForm").action = `/dashboard/finance/approve_driver/${d.id}`;
+    document.getElementById("financeForm").style.display = readOnly ? "none" : "block";
+
+    document.getElementById("driverModal").classList.add("show");
+
+    // Pre-fill finance form if driver has data
+    if (!readOnly) {
+      document.getElementById("transfer_fee_paid").checked = d.transfer_fee_paid;
+      document.getElementById("transfer_fee_amount").value = d.transfer_fee_amount || "";
+      document.getElementById("transfer_fee_paid_at").value = d.transfer_fee_paid_at || "";
+    }
+  }
+
+  function closeModal() { document.getElementById("driverModal").classList.remove("show"); }
+  function openPasswordModal() { document.getElementById("passwordModal").classList.add("show"); }
+  function closePasswordModal() { document.getElementById("passwordModal").classList.remove("show"); }
+
+  // =========================
+  // Filter drivers by search
+  // =========================
+  let financeSearchTimer = null;
+  function filterDrivers(section) {
+    clearTimeout(financeSearchTimer);
+    financeSearchTimer = setTimeout(() => {
+      const input = section === 'pending'
+        ? document.getElementById("pendingSearch").value.trim()
+        : document.getElementById("completedSearch").value.trim();
+      const params = new URLSearchParams(window.location.search);
+      if (input) params.set('q', input);
+      else params.delete('q');
+      params.set('lang', 'ar');
+      window.location.href = `${window.location.pathname}?${params.toString()}`;
+    }, 300);
+  }
+
+  // =========================
+  // Tabs
+  // =========================
+  function showTab(tab, event) {
+    document.getElementById("onboardingTab").style.display = tab === "onboarding" ? "block" : "none";
+    document.getElementById("offboardingTab").style.display = tab === "offboarding" ? "block" : "none";
+    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+    if (event && event.currentTarget) event.currentTarget.classList.add("active");
+  }
+
+  // =========================
+  // Offboarding Modal
+  // =========================
+  function openFinanceOffboardingModal(card) {
+    const id = card.dataset.id;
+    const name = card.dataset.name;
+    const iqama = card.dataset.iqama;
+    const tamm = card.dataset.tamm === 'True';
+
+    let html = `<p><strong>السائق:</strong> ${name}</p>`;
+    html += `<p><strong>الإقامة:</strong> ${iqama}</p>`;
+    html += `<p><strong>مصرح من قبل تم</strong> ${tamm ? '✅ Yes' : '❌ No'}</p>`;
+    document.getElementById("offboardingDriverDetails").innerHTML = html;
+
+    document.getElementById("financeOffboardingTitle").innerText = "إيقاف التعاملات المالية لـ:" + name;
+
+    document.getElementById("fleet_damage_report").value = card.dataset.fleetReport;
+    document.getElementById("fleet_damage_cost").value = card.dataset.fleetCost;
+    document.querySelector('input[name="finance_adjustments"]').value = card.dataset.financeAdjustments;
+    document.querySelector('textarea[name="finance_note"]').value = card.dataset.financeNote;
+
+    const form = document.getElementById("financeOffboardingForm");
+    form.action = `/dashboard/finance/offboarding/clear/${id}`;
+
+    document.getElementById("financeOffboardingModal").classList.add("show");
+  }
+
+  function closeFinanceOffboardingModal() {
+    document.getElementById("financeOffboardingModal").classList.remove("show");
+  }
+
+  // =========================
+  // Close modals with click outside or ESC
+  // =========================
+  window.addEventListener("click", function(e) {
+    if (e.target.classList.contains("modal")) {
+      closeModal();
+      closePasswordModal();
+      closeFinanceOffboardingModal();
+    }
+  });
+
+  window.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+      closeModal();
+      closePasswordModal();
+      closeFinanceOffboardingModal();
+    }
+  });
+</script>
+
+
+
+{% include 'includes/csrf_auto.html' %}
+</body>
+</html>

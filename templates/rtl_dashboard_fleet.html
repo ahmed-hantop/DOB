@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>لوحة تحكم مدير الأسطول</title>
+<link rel="icon" type="image/x-icon" href="static/Home_09_Onepage_files/logo1.png">
+<link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='Finance_files/bootstrap1.min.css') }}" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='Finance_files/style1.css') }}" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='Finance_files/default.css') }}" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-common.css') }}">
+  <style>
+    /* ---------- layout & utility ---------- */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root{
+      --bg:#e8eef5; --nav:#1a1a2e; --accent:#3498db; --ok:#27ae60; --danger:#e74c3c;
+      --primary:#602273; --primary-dark:#450f5c; --text-dark:#2c3e50; --text-light:#555;
+      --card-bg:#ffffff; --border:#cbd5e1; --shadow:0 2px 8px rgba(0,0,0,0.12);
+    }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; -webkit-font-smoothing:antialiased; direction:rtl; }
+    .navbar { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); padding: 15px 20px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow:var(--shadow); }
+    .navbar a { color: white; margin-right: 12px; text-decoration: none; font-weight: 600; cursor: pointer; background:rgba(255,255,255,0.1); padding:8px 14px; border-radius:6px; transition:all 0.3s; }
+    .navbar a:hover { background:rgba(255,255,255,0.2); }
+    .container { padding: 24px; }
+    .tab-btn { background:#f1f5f9; border:2px solid var(--border); padding:10px 16px; margin-left:8px; border-radius:8px; cursor:pointer; font-weight:600; color:var(--text-light); transition:all 0.3s; }
+    .tab-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .tab-btn:hover { background:#e2e8f0; }
+    .driver-card { background: var(--card-bg); width: 280px; padding: 16px; border-radius: 10px; box-shadow: var(--shadow); margin-bottom: 15px; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; border:1px solid var(--border); }
+    .driver-card:hover { transform: translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,0.15); }
+    .driver-card h3 { margin:0 0 10px 0; color:var(--text-dark); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+    .driver-card p { margin:6px 0; color:var(--text-light); font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); justify-content: center; align-items: center; z-index:9999; }
+    .modal.show { display: flex; }
+    .modal-content { background: var(--card-bg); padding: 24px; border-radius: 12px; width: 720px; max-width:94%; max-height: 92vh; overflow-y: auto; box-shadow:0 10px 50px rgba(0,0,0,0.25); direction:rtl; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom:2px solid var(--border); padding-bottom:12px; }
+    .modal-header h2 { margin:0; }
+    .close { cursor: pointer; font-size: 28px; background:transparent; border:none; color:var(--text-dark); transition:color 0.3s; }
+    .close:hover { color:#e74c3c; }
+
+    label { display: block; margin: 8px 0 6px; font-weight: 600; font-size:14px; color:var(--text-dark); text-align:right; }
+    input, select, textarea { width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: 8px; font-size:14px; transition:border 0.3s; text-align:right; }
+    input:focus, select:focus, textarea:focus { outline:none; border-color:var(--primary); }
+    input[readonly] { background: #f0f0f0; }
+    textarea { min-height:100px; resize:vertical; }
+
+    .approval-info { font-size: 13px; color: #2c3e50; background: #eafaf1; padding: 8px; border-radius: 8px; margin-bottom: 8px; }
+
+    .flash-message { padding: 12px; margin: 10px 0; border-radius: 8px; font-weight: 600; }
+    .flash-success { background: #d4edda; color: #155724; border:1px solid #c3e6cb; }
+    .flash-danger { background: #f8d7da; color: #721c24; border:1px solid #f5c6cb; }
+
+    .tab-container { display: flex; flex-wrap: wrap; margin: 10px 0; }
+    .tab-button { background: #bdc3c7; border: none; padding: 10px 20px; margin-left: 8px; border-radius: 8px; cursor: pointer; font-weight:600; transition:all 0.3s; }
+    .tab-button.active { background: #27ae60; color: white; }
+    .tab-button:hover { background: #219150; color: white; }
+
+    .btn { padding:10px 14px; border-radius:8px; border:none; font-weight:600; cursor:pointer; transition:all 0.3s; }
+    .btn.primary { background:#2980b9; color:#fff; }
+    .btn.primary:hover { background:#1f5f8b; }
+    .btn.success { background:#27ae60; color:#fff; box-shadow:0 4px 12px rgba(39,174,96,0.3); }
+    .btn.success:hover { background:#1e8449; transform:translateY(-2px); box-shadow:0 6px 16px rgba(39,174,96,0.4); }
+
+    .toast-container { position:fixed; top:20px; left:20px; display:flex; flex-direction:column; gap:12px; z-index:20000; }
+    .toast { padding:14px 20px; border-radius:8px; color:#fff; box-shadow:0 6px 20px rgba(0,0,0,0.3); transform:translateX(-120%); opacity:0; transition:all .4s; white-space:nowrap; font-weight:600; font-size:15px; }
+    .toast.show { transform:translateX(0); opacity:1; }
+    .toast.success { background:#27ae60; } .toast.error { background:#c0392b; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+    <div class="navbar">
+        <div style="display:flex; align-items:center; gap:10px;">
+      <img src="{{ url_for('static', filename='DOBS.png') }}" alt="Logo" style="width:40%;">
+    </div>
+    <div>
+<a href="{{ url_for('public.set_language', lang='en') }}" class="btn btn-sm btn-outline-primary">English</a>
+      <span class="small">{{ current_user.name or current_user.username }} ({{ current_user.designation }})</span>
+<a onclick="openPasswordModal()">تغيير كلمة المرور</a>
+      <a href="{{ url_for('auth.logout') }}">تسجيل الخروج</a>
+    </div>
+  </div>
+
+    <div class="container">
+      <div>
+        <h1>إدارة السائقين</h1>
+      </div>
+      <div style="display: flex; column-gap: 18px;">
+        <div style="width: 100%;  border-radius: 20px;padding: 20px;border: 1px solid #ccc;background-color: #60227338;">
+          <!-- Top Tabs: Onboarding / Offboarding -->
+          <div class="tab-container" style="display: ruby-text;">
+            <button class="tab-btn active" style="width: 25%;" onclick="showTab('onboarding')">التحاق وظيفي</button>
+            <button class="tab-btn" style="width: 25%;" onclick="showTab('offboarding')">إنهاء الخدمة</button>
+          </div>
+
+    <!-- ================= ONBOARDING TAB ================= -->
+<!-- ================= ONBOARDING TAB ================= -->
+<div id="onboardingTab">
+  <h2>السائقون في انتظار تعيين الأسطول</h2>
+  <div style="margin: 0 0 12px 0;">
+    <input id="globalSearch" type="text" value="{{ q or '' }}" placeholder="ابحث عن السائق بالاسم / الإقامة" oninput="globalSearchFilter()" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc;">
+  </div>
+
+  {% if onboarding_drivers %}
+    {% for driver in onboarding_drivers %}
+      <div class="driver-card"
+           onclick="openOnboardingModal(this)"
+           data-driver='{{ {
+               "id": driver.id,
+               "name": driver.name or "N/A",
+               "iqama_number": driver.iqaama_number or "N/A",
+               "city": driver.city or "N/A",
+               "iqama_card_upload": driver.iqama_card_upload or "",
+               "absher_number": driver.absher_number or "N/A",
+               "platforms": driver.platforms | map(attribute="platform_name") | list,
+               "platform_ids": driver.platforms | map(attribute="platform_user_id") | list,
+               "ops_manager_approved_at": driver.ops_manager_approved_at.strftime("%Y-%m-%d %H:%M") if driver.ops_manager_approved_at else "",
+               "hr_approved_at": driver.hr_approved_at.strftime("%Y-%m-%d %H:%M") if driver.hr_approved_at else "",
+               "ops_supervisor_approved_at": driver.ops_supervisor_approved_at.strftime("%Y-%m-%d %H:%M") if driver.ops_supervisor_approved_at else ""
+           } | tojson | safe }}'>
+        <h3>{{ driver.name }}</h3>
+        <p><strong>الإقامة:</strong> {{ driver.iqaama_number }}</p>
+        <p><strong>المرحلة:</strong> {{ driver.onboarding_stage }}</p>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>لا يوجد سائقون في انتظار الانضمام.</p>
+  {% endif %}
+</div>
+
+<!-- ================= ONBOARDING MODAL ================= -->
+<div id="driverModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="driverName"></h3>
+      <span class="close" onclick="closeModal('driverModal')">&times;</span>
+    </div>
+    <div id="driverDetails"></div>
+
+    <form id="fleetOnboardingForm" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>المركبات المتاحة</label>
+      <select name="vehicle_id" id="vehicleSelect" required>
+        <option value="">-- اختر مركبة --</option>
+        {% for v in available_vehicles %}
+          <option value="{{ v.id }}" data-make="{{ v.make }}" data-model="{{ v.model }}">{{ v.registration_number }} — {{ v.make }} {{ v.model }}</option>
+        {% endfor %}
+      </select>
+
+      <div id="vehicleMeta" class="muted" style="margin:6px 0 10px 0;"></div>
+
+      <label>تاريخ التكليف</label>
+      <input type="date" name="assignment_date" required>
+
+      <label>تحميل لقطة شاشة لتفويض تم</label>
+      <input type="file" name="tamm_authorization_ss" accept=".png,.jpg,.jpeg,.pdf" required>
+
+      <label>
+        <input type="checkbox" name="tamm_authorized" value="1" required>
+        ✅ تم إصدار تفويض تم
+      </label>
+
+      <button type="submit"
+              style="border-radius:10px;background:#602273;color:#fff;padding:10px;">
+        ✅ تعيين المركبة وإرسالها إلى المرحلة التالية
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+let fleetSearchTimer = null;
+function globalSearchFilter(){
+  clearTimeout(fleetSearchTimer);
+  fleetSearchTimer = setTimeout(() => {
+    const q = (document.getElementById('globalSearch').value || '').trim();
+    const params = new URLSearchParams(window.location.search);
+    if (q) params.set('q', q);
+    else params.delete('q');
+    params.set('lang', 'ar');
+    window.location.href = `${window.location.pathname}?${params.toString()}`;
+  }, 300);
+}
+
+/* ========= OPEN MODAL ========= */
+function openOnboardingModal(card) {
+  try {
+    const d = JSON.parse(card.dataset.driver);
+    if (!d) return;
+
+    const nameEl = document.getElementById("driverName");
+    const detailsEl = document.getElementById("driverDetails");
+    const form = document.getElementById("fleetOnboardingForm");
+    if (!nameEl || !detailsEl || !form) return;
+
+    // Title
+    nameEl.innerText = "Assign Vehicle for: " + (d.name || "N/A");
+
+    // Build driver info
+    let html = `
+      <div class="approval-info"><strong>تمت الموافقة من مدير العمليات::</strong> ${d.ops_manager_approved_at || "❌ غير معتمد"}</div>
+      <div class="approval-info"><strong>تمت الموافقة من قبل قسم الموارد البشرية:</strong> ${d.hr_approved_at || "❌ غير معتمد"}</div>
+      <div class="approval-info"><strong>تمت الموافقة من قبل مشرف العمليات:</strong> ${d.ops_supervisor_approved_at || "❌ غير معتمد"}</div>
+      <p><strong>الإقامة:</strong> ${d.iqama_number || "N/A"}</p>
+      <p><strong>مدينة:</strong> ${d.city || "N/A"}</p>
+      <p><strong>رقم أبشر:</strong> ${d.absher_number || "N/A"}</p>
+    `;
+
+    if (d.platforms && d.platforms.length) {
+      html += `<p><strong>المنصات:</strong> ${d.platforms.map((p, i) =>
+        `${p} (${d.platform_ids[i] || 'N/A'})`).join(", ")}</p>`;
+    }
+
+    // Iqama card display
+    if (d.iqama_card_upload) {
+      let imgPath = d.iqama_card_upload.replace(/^\/?static\/uploads\//, "");
+      html += `<p><img src="/static/uploads/${imgPath}" width="300" style="border-radius:8px;" alt="Iqama Card"></p>`;
+    } else {
+      html += `<p><em>لم يتم رفع بطاقة الإقامة</em></p>`;
+    }
+
+    detailsEl.innerHTML = html;
+    form.action = `/dashboard/fleet/assign_vehicle/${d.id}`;
+
+    const select = document.getElementById("vehicleSelect");
+    if (select) {
+      select.selectedIndex = 0;
+      if (typeof setVehicleMeta === "function") setVehicleMeta();
+    }
+
+    openModal("driverModal");
+  } catch (err) {
+    console.error("فشل في فتح نافذة الترحيب:", err);
+  }
+}
+
+/* ========= SUBMIT FORM (AJAX) ========= */
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("fleetOnboardingForm");
+  const vehicleSelect = document.getElementById("vehicleSelect");
+  const vehicleMeta = document.getElementById("vehicleMeta");
+
+  window.setVehicleMeta = function setVehicleMeta() {
+    if (!vehicleSelect || !vehicleMeta) return;
+    const opt = vehicleSelect.options[vehicleSelect.selectedIndex];
+    if (opt && opt.value) {
+      const make = opt.getAttribute("data-make") || "";
+      const model = opt.getAttribute("data-model") || "";
+      vehicleMeta.textContent = `المركبة المحددة: ${opt.text} (${make} ${model})`;
+    } else {
+      vehicleMeta.textContent = "";
+    }
+  };
+
+  if (vehicleSelect) {
+    vehicleSelect.addEventListener("change", setVehicleMeta);
+    setVehicleMeta();
+  }
+  if (!form) return;
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    if (!confirm("هل أنت متأكد أنك تريد تعيين هذه المركبة؟")) return;
+
+    const formData = new FormData(this);
+
+    try {
+      const res = await fetch(this.action, { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) throw new Error(data.message || "فشل تعيين المركبة");
+
+      alert("✅ " + (data.message || "تم تعيين المركبة بنجاح!"));
+      closeModal("driverModal");
+      location.reload();
+
+    } catch (err) {
+      console.error("خطأ في نموذج التسجيل:", err);
+      alert("⚠️ " + err.message);
+    }
+  });
+});
+</script>
+
+
+    <!-- ================= OFFBOARDING TAB ================= -->
+    <div id="offboardingTab" style="display:none;">
+      <h2>طلبات إنهاء خدمة السائق</h2>
+      <div style="display: ruby;">
+      {% for record in offboarding_requests %}
+        <div class="driver-card"
+          data-offboarding-id="{{ record.id }}"
+          data-driver-name="{{ record.driver.name }}"
+          data-iqama="{{ record.driver.iqaama_number }}"
+          data-requested="{{ record.requested_at.strftime('%Y-%m-%d %H:%M') }}"
+          onclick="openOffboardingModal(this)">
+          <h3>{{ record.driver.name }}</h3>
+          <p><strong>الإقامة:</strong> {{ record.driver.iqaama_number }}</p>
+          <p><strong>تم الطلب في:</strong> {{ record.requested_at.strftime('%Y-%m-%d %H:%M') }}</p>
+          <p><strong>الحالة:</strong> {{ record.status }}</p>
+        </div>
+      {% else %}
+        <p>لا توجد طلبات إنهاء خدمة معلقّة.</p>
+      {% endfor %}
+      </div>
+    </div>
+
+    <!-- ================= OFFBOARDING MODAL ================= -->
+    <div id="offboardingModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>إنهاء خدمة السائق: <span id="offboardingModalDriver"></span></h3>
+          <span class="close" onclick="closeModal('offboardingModal')">&times;</span>
+        </div>
+
+        <form id="offboardingForm">
+          <input type="hidden" id="offboardingId">
+
+          <label><input type="checkbox" id="carReturned" required> تم إعادة السيارة</label>
+          <label>تقييم الأضرار:</label>
+          <textarea id="damageReport" required></textarea>
+          <label>تكلفة الضرر (ريال سعودي):</label>
+          <input type="number" id="damageCost" step="0.01" required>
+
+          <hr>
+          <label><input type="checkbox" id="tammRevoked" required> ⚠️ تم إلغاء TAMM / تم إيقاف الخدمة بالكامل</label>
+
+          <div style="margin-top:15px;">
+            <button style="border-radius:10px;background:#602273;color:#fff;padding:10px;margin-bottom: 5px;" type="submit">✅ تقديم إنهاء الخدمة</button>
+            <button type="button" style="border-radius:10px;background:#7c2828;color:#fff;padding:10px;" onclick="closeModal('offboardingModal')">إلغاء</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= PASSWORD MODAL ================= -->
+    <div id="passwordModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>تغيير كلمة المرور</h3>
+          <span class="close" onclick="closeModal('passwordModal')">&times;</span>
+        </div>
+        <form method="POST" action="{{ url_for('fleet.change_password') }}">
+          <input type="password" name="current_password" placeholder="كلمة المرور الحالية" required>
+          <input type="password" name="new_password" placeholder="كلمة مرور جديدة" required>
+          <input type="password" name="confirm_password" placeholder="تأكيد كلمة المرور" required>
+          <button type="submit">تحديث كلمة المرور</button>
+        </form>
+      </div>
+    </div>
+  </div>
+          <div class="col-lg-12" style="width: 20%;">
+            <div class="single_element">
+                <div class="quick_activity">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="quick_activity_wrap" style="display: grid;grid-template-columns: repeat(1, 1fr);">
+                                <div style="display: grid;grid-gap: 10px;grid-template-columns: repeat(1, 1fr);">
+                                  <div class="single_quick_activity" style=" padding: 10px 20px;">
+                                      <h4>السائقون في تبويب الانضمام:</h4>
+                                      <h3> <span class="counter">{{ total_drivers or 0 }}</span> </h3>
+                                  </div>
+                                  <div class="single_quick_activity" style=" padding: 10px 20px;">
+                                      <h4>السائقون في تبويب إنهاء الخدمة:</h4>
+                                      <h3> <span class="counter">{{ total_users or 0 }}</span> </h3>
+                                  </div>
+                                </div>  
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+      </div>
+      </div>
+    </div>
+  <!-- ================= JAVASCRIPT ================= -->
+<!-- ================= CLEAN JAVASCRIPT ================= -->
+<script>
+/* ========= Helper: Modal Control ========= */
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.add("show");
+}
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.remove("show");
+}
+
+/* ========= Tab Switcher (Main: Onboarding/Offboarding) ========= */
+function showTab(tabName, btn) {
+  const onboardingTab = document.getElementById("onboardingTab");
+  const offboardingTab = document.getElementById("offboardingTab");
+
+  onboardingTab.style.display = tabName === "onboarding" ? "block" : "none";
+  offboardingTab.style.display = tabName === "offboarding" ? "block" : "none";
+
+  document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+}
+
+
+/* ========= Offboarding Logic ========= */
+let currentOffboardingId = null;
+
+function openOffboardingModal(card) {
+  currentOffboardingId = card.dataset.offboardingId;
+  document.getElementById("offboardingModalDriver").innerText = card.dataset.driverName;
+  openModal("offboardingModal");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("offboardingForm");
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!currentOffboardingId) {
+      alert("معرّف سجل إنهاء الخدمة مفقود.");
+      return;
+    }
+
+    const payload = {
+      fleet_damage_report: document.getElementById("damageReport").value,
+      fleet_damage_cost: document.getElementById("damageCost").value,
+      car_returned: document.getElementById("carReturned").checked,
+      tamm_revoked: document.getElementById("tammRevoked").checked,
+      finalize: false,
+      finance_cleared: false
+    };
+
+    if (!confirm("هل أنت متأكد أنك تريد إرسال هذا السائق لإتمام إجراءات الخروج؟")) return;
+
+    try {
+      const res = await fetch(`/dashboard/fleet/api/offboarding_action/${currentOffboardingId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token() }}"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || "فشل إنهاء الخدمة.");
+      }
+
+      alert(data.message);
+      location.reload();
+    } catch (err) {
+      console.error("خطأ في عملية إنهاء الخدمة:", err);
+      alert("⚠️ حدث خطأ غير متوقع: " + err.message);
+    }
+  });
+});
+
+/* ========= Password Modal ========= */
+function openPasswordModal() {
+  openModal("passwordModal");
+}
+</script>
+
+
+{% include 'includes/csrf_auto.html' %}
+</body>
+</html>
+

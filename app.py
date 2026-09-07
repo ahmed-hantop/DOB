@@ -197,6 +197,16 @@ def create_app():
             }
             if getattr(record, "request_id", None):
                 payload["request_id"] = record.request_id
+            # Flask logs unhandled exceptions via app.logger.error(..., exc_info=True)
+            # (see log_exception() in flask/app.py) -- record.exc_info carries the
+            # real traceback, but this formatter used to build its JSON payload by
+            # hand and never looked at it, so every "Exception on /dashboard/ [GET]"
+            # entry since April had NO stack trace at all, just that bare message.
+            # Include it whenever present so the next occurrence is diagnosable.
+            if record.exc_info:
+                payload["exc_info"] = self.formatException(record.exc_info)
+            elif record.exc_text:
+                payload["exc_info"] = record.exc_text
             return json.dumps(payload)
 
     if not app.debug:

@@ -30,9 +30,12 @@
     <div>
       <strong>{{ user.get('name') or user.get('username') }}</strong>
       <span class="badge-soft info ms-2">{{ user.get('role') }}</span>
+      {% if user.get('locked_until') %}<span class="badge-soft danger ms-2">Locked</span>{% endif %}
       <div class="text-secondary small">{{ user.get('email') or '' }} &middot; {{ user.get('designation') or '' }}</div>
     </div>
     <div class="d-flex gap-2">
+      {% if user.get('locked_until') %}<form method="POST" action="{{ url_for('admin.unlock_user', user_id=user.get('id')) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-sm btn-outline-success">Unlock</button></form>{% endif %}
+      <button type="button" class="btn btn-sm btn-outline-primary" data-reset-password='{{ user | tojson }}'>Reset Password</button>
       <button type="button" class="btn btn-sm btn-outline-secondary" data-edit-user='{{ user | tojson }}'>{{ tr('Edit', 'تعديل') }}</button>
       <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.user_access', user_id=user.get('id')) }}">{{ tr('Access', 'الصلاحيات') }}</a>
       {% if can_impersonate and user.get('id') != current_user.id %}
@@ -51,6 +54,8 @@
   <p class="text-muted">{{ tr('No users found.', 'لا يوجد مستخدمون.') }}</p>
   {% endfor %}
 </div>
+
+<div class="modal" id="resetPasswordModal"><div class="modal-content" style="max-width:460px;"><div class="modal-header"><h3>Reset User Password</h3><button class="modal-close" data-modal-close>&times;</button></div><form id="resetPasswordForm" method="POST"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="modal-body"><p id="resetPasswordUser" class="text-secondary"></p><label class="form-label">New Password</label><input type="password" name="new_password" class="form-control" minlength="6" required autocomplete="new-password"><small class="text-secondary">This also clears any login lock.</small></div><div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-modal-close>Cancel</button><button type="submit" class="btn btn-primary">Reset Password</button></div></form></div></div>
 
 <!-- ===================== Add/Edit user modal ===================== -->
 <div class="modal" id="userModal">
@@ -104,6 +109,16 @@
       document.getElementById('userPasswordField').style.display = 'none';
       form.elements['password'].required = false;
       DobsUI.openModal('userModal');
+    });
+  });
+  document.querySelectorAll('[data-reset-password]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var u = JSON.parse(btn.getAttribute('data-reset-password') || '{}');
+      var form = document.getElementById('resetPasswordForm');
+      form.reset();
+      form.action = '/dashboard/users/' + u.id + '/reset-password';
+      document.getElementById('resetPasswordUser').textContent = u.name || u.username || '';
+      DobsUI.openModal('resetPasswordModal');
     });
   });
 })();

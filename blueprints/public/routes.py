@@ -3,7 +3,7 @@ import re
 from flask import Blueprint, current_app, render_template, request, redirect, url_for, flash, session, send_from_directory, make_response
 from extensions import db, mail, limiter
 from models import Driver, User, DriverDocument, Branch
-from services.file_storage import save_to_shared_storage
+from services.file_storage import save_to_shared_storage, link_into_shared_storage
 from utils.validation import parse_date
 from flask_mail import Message
 from werkzeug.utils import secure_filename
@@ -184,6 +184,7 @@ def register():
             saudi_driving_license=saudi_driving_license,
             nationality=nationality,
             city=city,
+            address=(form.address.data or None),
             absher_number=absher_number,
             previous_sponsor_number=previous_sponsor_number,
             dob=form.dob.data,
@@ -208,12 +209,18 @@ def register():
             new_driver.ensure_shared_driver_defaults()
             db.session.commit()
 
-            # Dual-write all three documents to the shared driver_documents store
+            # Publish all three documents into the shared driver_documents store.
+            # The files are already on disk in static/uploads (they had to be
+            # saved before the Driver row existed, since the columns reference
+            # them), so hard-link those rather than writing the same bytes again
+            # under a second name -- see link_into_shared_storage().
             shared_root = current_app.config.get("DRIVER_DOCUMENT_PATH", upload_folder)
             for doc_type, (file_storage, _label) in uploads.items():
                 try:
-                    file_storage.stream.seek(0)
-                    relative_path = save_to_shared_storage(file_storage, new_driver.id, doc_type, shared_root)
+                    saved_name = saved_filenames.get(doc_type)
+                    relative_path = link_into_shared_storage(
+                        os.path.join(upload_folder, saved_name), new_driver.id, shared_root, saved_name
+                    )
                     file_storage.stream.seek(0, 2)
                     doc = DriverDocument(
                         driver_id     = new_driver.id,
@@ -226,7 +233,7 @@ def register():
                     db.session.add(doc)
                     db.session.commit()
                 except Exception:
-                    current_app.logger.exception("Shared storage dual-write failed for %s registration", doc_type)
+                    current_app.logger.exception("Publishing to shared storage failed for %s registration", doc_type)
         except IntegrityError as e:
             db.session.rollback()
             current_app.logger.exception("Public registration IntegrityError")

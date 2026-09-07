@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقارير السائقين</title>
+    <link rel="icon" type="image/x-icon" href="static/Home_09_Onepage_files/logo1.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='Finance_files/default.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+<div class="container-fluid mt-4">
+
+    <!-- =========================
+         Summary Cards
+         ========================= -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-2">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">إجمالي السائقين</h5>
+                    <p class="card-text fs-4">{{ summary.total_drivers }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">التحويلات المكتملة</h5>
+                    <p class="card-text fs-4">{{ summary.transfers_completed }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">التحويلات المعلقة</h5>
+                    <p class="card-text fs-4">{{ summary.transfers_pending }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title">الإقامات منتهية</h5>
+                    <p class="card-text fs-4">{{ summary.expired_iqamas }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================
+         Filters Form
+         ========================= -->
+    <form method="POST" action="{{ url_for('reports_bp.reports') }}" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label for="report_type" class="form-label">نوع التقرير</label>
+            <select class="form-select" name="report_type" id="report_type">
+                <option value="active_drivers" {% if report_type=='active_drivers' %}selected{% endif %}>السائقون النشطون</option>
+                <option value="no_qiwa_contract" {% if report_type=='no_qiwa_contract' %}selected{% endif %}>بدون عقد Qiwa</option>
+                <option value="expired_iqama" {% if report_type=='expired_iqama' %}selected{% endif %}>الإقامات منتهية</option>
+                <option value="onboarding_completed" {% if report_type=='onboarding_completed' %}selected{% endif %}>تم الانضمام</option>
+                <option value="pending_onboarding" {% if report_type=='pending_onboarding' %}selected{% endif %}>انضمام معلق</option>
+                <option value="offboarding_completed" {% if report_type=='offboarding_completed' %}selected{% endif %}>تم الخروج</option>
+                <option value="pending_offboarding" {% if report_type=='pending_offboarding' %}selected{% endif %}>خروج معلق</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label for="start_date" class="form-label">من تاريخ</label>
+            <input type="date" class="form-control" name="start_date" id="start_date" value="{{ start_date }}">
+        </div>
+
+        <div class="col-md-2">
+            <label for="end_date" class="form-label">إلى تاريخ</label>
+            <input type="date" class="form-control" name="end_date" id="end_date" value="{{ end_date }}">
+        </div>
+
+        <div class="col-md-2">
+            <label for="city" class="form-label">المدينة</label>
+            <select class="form-select" name="city" id="city">
+                <option value="All" {% if city=='All' %}selected{% endif %}>جميع المدن</option>
+                <option value="Riyadh" {% if city=='Riyadh' %}selected{% endif %}>الرياض</option>
+                <option value="Jeddah" {% if city=='Jeddah' %}selected{% endif %}>جدة</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label for="transfer_status" class="form-label">حالة التحويل</label>
+            <select class="form-select" name="transfer_status" id="transfer_status">
+                <option value="" {% if transfer_status=='' %}selected{% endif %}>الكل</option>
+                <option value="transferred" {% if transfer_status=='transferred' %}selected{% endif %}>تم التحويل</option>
+                <option value="not_transferred" {% if transfer_status=='not_transferred' %}selected{% endif %}>لم يتم التحويل</option>
+            </select>
+        </div>
+
+        <div class="col-md-1 align-self-end">
+            <button type="submit" class="btn btn-primary w-100">تصفية</button>
+        </div>
+    </form>
+
+    <!-- =========================
+         Export Buttons
+         ========================= -->
+    {% if drivers %}
+    <div class="mb-3">
+        <a href="{{ url_for('reports_bp.export_csv', report_type=report_type, start_date=start_date, end_date=end_date, city=city, transfer_status=transfer_status) }}" class="btn btn-success">تصدير CSV</a>
+        <a href="{{ url_for('reports_bp.export_pdf', report_type=report_type, start_date=start_date, end_date=end_date, city=city, transfer_status=transfer_status) }}" class="btn btn-danger">تصدير PDF</a>
+    </div>
+    {% endif %}
+
+    <!-- =========================
+         Reports Table
+         ========================= -->
+    {% if drivers %}
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>الاسم الكامل</th>
+                    <th>رقم الإقامة</th>
+                    <th>المدينة</th>
+                    <th>المنصة</th>
+                    <th>تاريخ التعيين</th>
+                    <th>تم التحويل</th>
+                    <th>مرحلة الانضمام</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in drivers %}
+                <tr>
+                    <td>{{ d.full_name }}</td>
+                    <td>{{ d.iqama_number }}</td>
+                    <td>{{ d.city or '' }}</td>
+                    <td>{{ d.platform or '' }}</td>
+                    <td>{{ d.assignment_date.strftime("%Y-%m-%d") if d.assignment_date else '' }}</td>
+                    <td>{% if d.sponsorship_transfer_done %}نعم{% else %}لا{% endif %}</td>
+                    <td>{{ d.onboarding_stage }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p class="text-center mt-4 fs-5">لا توجد بيانات للعرض</p>
+    {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

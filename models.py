@@ -187,6 +187,11 @@ class Driver(db.Model):
     passport_upload = db.Column(db.String(200), nullable=True)
     platform = db.Column(db.String(100), nullable=True)
     city = db.Column(db.String(100), nullable=True)
+    # Shared drivers table -- physical column added by DMS migration
+    # 2026_09_07_210000_add_driver_address_and_driver_inventory.php.
+    # Optional at registration/HR (company accommodation is assigned later
+    # in DMS). national_address is DMS-only (not surfaced in DOBS).
+    address = db.Column(db.Text, nullable=True)
     car_details = db.Column(db.String(200), nullable=True)
     assignment_date = db.Column(db.Date, nullable=True)
     onboarding_stage = db.Column(db.String(50), default="Ops Manager", nullable=False)
@@ -344,13 +349,21 @@ class DriverDocument(db.Model):
 
     id            = db.Column(db.Integer, primary_key=True)
     driver_id     = db.Column(db.Integer, db.ForeignKey("drivers.id"), nullable=False, index=True)
-    document_type = db.Column(
-        db.Enum(
-            "iqama", "passport", "visa", "license", "medical", "contract",
-            "mobile", "qiwa_contract", "other",
-        ),
-        nullable=False,
-    )
+    # Plain string, NOT a closed Python-side Enum -- this table is written by
+    # two independent systems with two different vocabularies (DOBS writes
+    # iqama/passport/visa/license/medical/contract/mobile/qiwa_contract/other;
+    # DMS/Laravel additionally writes company_contract/promissory_note, and its
+    # own document_type column is a free-text varchar for exactly this reason).
+    # A closed db.Enum() here only validates on READ, not write, so it can
+    # never actually stop a bad value from being stored -- it can only crash
+    # every dashboard load that touches a driver holding one. That happened
+    # for real: 20260831_add_qiwa_contract_document_type.py already widened
+    # this list once for the same symptom (LookupError on qiwa_contract), and
+    # it broke again 2026-09-03 the moment DMS wrote company_contract/
+    # promissory_note. The real MySQL column is already varchar(100) --
+    # confirmed via SHOW COLUMNS -- so this just matches the model to the
+    # schema that already exists, instead of re-litigating the list forever.
+    document_type = db.Column(db.String(100), nullable=False)
     file_path     = db.Column(db.String(500), nullable=False)
     original_name = db.Column(db.String(255), nullable=True)
     file_size     = db.Column(db.Integer, nullable=True)
@@ -852,3 +865,91 @@ class SharedGeneratedDriverContract(db.Model):
 
     def __repr__(self):
         return f"<SharedGeneratedDriverContract ref={self.reference_number} driver={self.driver_id}>"
+
+
+# ---------------------------------------------------------------------------
+# Shared with DMS (dms.speedlogi.sa). Physical tables owned by DMS's
+# migrations -- these models just let DOBS read/write them.
+#   driver_bank_accounts      : created 2026_08_24 / 2026_08_25 (DMS)
+#   inventory_items           : created 2026_09_07_210000 (DMS)
+#   driver_inventory_issuances: created 2026_09_07_210000 (DMS)
+# ---------------------------------------------------------------------------
+
+class DriverBankAccount(db.Model):
+    __tablename__ = "driver_bank_accounts"
+
+    TYPE_BANK = "bank"
+    TYPE_STC_PAY = "stc_pay"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    driver_id = db.Column(db.Integer, db.ForeignKey("drivers.id"), nullable=False, index=True)
+    account_type = db.Column(db.String(20), nullable=False, default=TYPE_BANK)
+    bank_name = db.Column(db.String(255), nullable=True)
+    account_number = db.Column(db.String(100), nullable=True)   # IBAN / account number
+    stc_pay_number = db.Column(db.String(30), nullable=True)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
+
+    driver = db.relationship("Driver")
+
+    def __repr__(self):
+        return f"<DriverBankAccount driver={self.driver_id} type={self.account_type}>"
+
+
+class InventoryItem(db.Model):
+    __tablename__ = "inventory_items"
+
+    TYPE_SHIRT = "shirt"
+    TYPE_BAG = "bag"
+    TYPE_DRIVER_CARD = "driver_card"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    item_type = db.Column(db.String(20), nullable=False)
+    business_id = db.Column(db.BigInteger, db.ForeignKey("businesses.id"), nullable=True)
+    stock_quantity = db.Column(db.Integer, default=0, nullable=False)
+    low_stock_threshold = db.Column(db.Integer, nullable=True)
+    restock_on_return = db.Column(db.Boolean, default=True, nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
+
+    business = db.relationship("Business")
+
+    def __repr__(self):
+        return f"<InventoryItem {self.item_type} business={self.business_id} stock={self.stock_quantity}>"
+
+
+class DriverInventoryIssuance(db.Model):
+    __tablename__ = "driver_inventory_issuances"
+
+    SOURCE_DMS = "dms"
+    SOURCE_DOBS_HR_FINAL = "dobs_hr_final"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    driver_id = db.Column(db.Integer, db.ForeignKey("drivers.id"), nullable=True, index=True)
+    inventory_item_id = db.Column(db.BigInteger, db.ForeignKey("inventory_items.id"), nullable=False)
+    quantity = db.Column(db.Integer, default=1, nullable=False)
+    # issued_by holds a dobs_user.id here (a users.id when written by DMS) --
+    # not FK-constrained on the table, since the column is shared by both
+    # apps' distinct user tables. issued_by_name is the display name captured
+    # at write time so DMS can still show who issued a DOBS row.
+    issued_by = db.Column(db.Integer, nullable=True)
+    issued_by_name = db.Column(db.String(150), nullable=True)
+    issued_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    source = db.Column(db.String(20), default=SOURCE_DMS, nullable=False)
+    returned_quantity = db.Column(db.Integer, default=0, nullable=False)
+    returned_at = db.Column(db.DateTime, nullable=True)
+    returned_by = db.Column(db.Integer, nullable=True)
+    returned_by_name = db.Column(db.String(150), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    deleted_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
+
+    item = db.relationship("InventoryItem")
+
+    def __repr__(self):
+        return f"<DriverInventoryIssuance driver={self.driver_id} item={self.inventory_item_id} qty={self.quantity}>"

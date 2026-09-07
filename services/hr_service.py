@@ -5,7 +5,7 @@ from typing import Dict
 from flask import current_app
 from flask_mail import Message
 
-from services.file_storage import is_allowed_file, save_upload, safe_ext_filename, validate_upload, save_to_shared_storage
+from services.file_storage import is_allowed_file, save_upload, safe_ext_filename, validate_upload, save_to_shared_storage, link_into_shared_storage
 from services import onboarding_workflow
 from models import QIWA_CONTRACT_STATUSES, TRANSFER_STATUSES, DriverTypeSettings
 
@@ -51,17 +51,22 @@ def process_hr_approval(driver, files: Dict[str, object], form_data: Dict[str, o
             original = file_storage.filename
             validate_upload(file_storage, max_bytes)
             filename = safe_ext_filename(prefix, db_field, original)
-            save_upload(file_storage, upload_folder, filename)
+            saved_name = save_upload(file_storage, upload_folder, filename)
             if hasattr(driver, db_field):
                 setattr(driver, db_field, filename)
 
             if db is not None and driver.id:
                 doc_type = _HR_FIELD_TO_DOC_TYPE.get(db_field, "other")
                 try:
-                    relative_path = save_to_shared_storage(file_storage, driver.id, doc_type, shared_root)
+                    # Hard-link the file we just saved rather than writing the
+                    # same bytes a second time under a different name -- see
+                    # link_into_shared_storage() for why that mattered.
+                    relative_path = link_into_shared_storage(
+                        os.path.join(upload_folder, saved_name), driver.id, shared_root, saved_name
+                    )
                     _insert_driver_document(db, driver, doc_type, file_storage, relative_path, uploaded_by_id)
                 except Exception:
-                    current_app.logger.exception("Shared storage dual-write failed for field %s", db_field)
+                    current_app.logger.exception("Publishing to shared storage failed for field %s", db_field)
 
     # Qiwa contracts are a company-sponsorship concept - only Sponsor-type
     # drivers can have one, per driver_type's requires_qiwa_contract flag
@@ -88,6 +93,45 @@ def process_hr_approval(driver, files: Dict[str, object], form_data: Dict[str, o
     driver.qiwa_contract_status = qiwa_status
     driver.sponsorship_transfer_status = transfer_status
 
+    # Driver address (optional -- company accommodation is assigned later in
+    # DMS) and bank details (one bank account + one STC Pay, both required at
+    # this stage) -> written into the shared drivers / driver_bank_accounts
+    # tables that DMS reads.
+    address_val = (form_data.get("address") or "").strip()
+    if hasattr(driver, "address"):
+        driver.address = address_val or None
+
+    if db is not None and driver.id:
+        from models import DriverBankAccount
+
+        bank_name = (form_data.get("bank_name") or "").strip()
+        account_number = (form_data.get("account_number") or "").strip()
+        stc_pay_number = (form_data.get("stc_pay_number") or "").strip()
+
+        if bank_name or account_number:
+            bank_row = DriverBankAccount.query.filter_by(
+                driver_id=driver.id, account_type=DriverBankAccount.TYPE_BANK
+            ).filter(DriverBankAccount.deleted_at.is_(None)).first()
+            if not bank_row:
+                bank_row = DriverBankAccount(driver_id=driver.id, account_type=DriverBankAccount.TYPE_BANK)
+                db.session.add(bank_row)
+            bank_row.bank_name = bank_name or None
+            bank_row.account_number = account_number or None
+            bank_row.stc_pay_number = None
+            bank_row.is_active = True
+
+        if stc_pay_number:
+            stc_row = DriverBankAccount.query.filter_by(
+                driver_id=driver.id, account_type=DriverBankAccount.TYPE_STC_PAY
+            ).filter(DriverBankAccount.deleted_at.is_(None)).first()
+            if not stc_row:
+                stc_row = DriverBankAccount(driver_id=driver.id, account_type=DriverBankAccount.TYPE_STC_PAY)
+                db.session.add(stc_row)
+            stc_row.stc_pay_number = stc_pay_number or None
+            stc_row.bank_name = None
+            stc_row.account_number = None
+            stc_row.is_active = True
+
     driver.hr_approved_at = datetime.utcnow()
     onboarding_workflow.advance(driver, from_stage="HR")
 
@@ -112,7 +156,7 @@ def save_transfer_proof(driver, file_storage, upload_folder: str, status: str, m
     base_name = (driver.name or "driver").replace(" ", "_")
     iqama = driver.iqaama_number or "unknown"
     filename = safe_ext_filename(base_name, "transfer_proof", file_storage.filename)
-    save_upload(file_storage, upload_folder, filename)
+    saved_name = save_upload(file_storage, upload_folder, filename)
 
     driver.sponsorship_transfer_status = status
     driver.sponsorship_transfer_proof = filename
@@ -121,10 +165,12 @@ def save_transfer_proof(driver, file_storage, upload_folder: str, status: str, m
     if db is not None and driver.id:
         shared_root = current_app.config.get("DRIVER_DOCUMENT_PATH", upload_folder)
         try:
-            relative_path = save_to_shared_storage(file_storage, driver.id, "other", shared_root)
+            relative_path = link_into_shared_storage(
+                os.path.join(upload_folder, saved_name), driver.id, shared_root, saved_name
+            )
             _insert_driver_document(db, driver, "other", file_storage, relative_path, uploaded_by_id)
         except Exception:
-            current_app.logger.exception("Shared storage dual-write failed for transfer_proof")
+            current_app.logger.exception("Publishing to shared storage failed for transfer_proof")
 
 
 def send_rejection_email(mail, recipients, driver_name, driver_iqaama, nationality, reason, rejected_by):

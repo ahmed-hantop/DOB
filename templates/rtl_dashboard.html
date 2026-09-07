@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>لوحة تحكم المدير</title>
+<link href="static/Home 09 (Onepage)_files/logo1.png" rel="icon" type="image/x-icon"/>
+<link href="{{ url_for('static', filename='Finance_files/bootstrap1.min.css') }}" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='Finance_files/style1.css') }}" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='Finance_files/default.css') }}" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-common.css') }}">
+  <style>
+    /* ---------- layout & utility ---------- */
+    :root{
+      --bg:#e8eef5; --nav:#1a1a2e; --accent:#3498db; --ok:#27ae60; --danger:#e74c3c;
+      --primary:#602273; --primary-dark:#450f5c; --text-dark:#2c3e50; --text-light:#555;
+      --card-bg:#ffffff; --border:#cbd5e1; --shadow:0 2px 8px rgba(0,0,0,0.12);
+    }
+    *{box-sizing:border-box}
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; background:var(--bg); color:var(--text-dark); -webkit-font-smoothing:antialiased; direction:rtl; }
+    .navbar { background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; box-shadow:var(--shadow); }
+    .navbar .brand { font-weight:700; font-size:18px; }
+    .navbar .nav-right { display:flex; gap:10px; align-items:center; }
+    .navbar a, .navbar button { color:#fff; margin-right:8px; text-decoration:none; font-weight:600; background:rgba(255,255,255,0.1); border:none; cursor:pointer; padding:8px 14px; border-radius:6px; transition:all 0.3s; }
+    .navbar a:hover, .navbar button:hover { background:rgba(255,255,255,0.2); }
+    .container { padding:24px; max-width: 100%; margin:0 auto; }
+    h1,h2 { color:var(--text-dark); margin:0 0 16px 0; font-weight:600; }
+    .tabs { margin-top:16px; }
+    .tab-btn { background:#f1f5f9; border:2px solid var(--border); padding:10px 16px; margin-left:8px; border-radius:8px; cursor:pointer; font-weight:600; color:var(--text-light); transition:all 0.3s; }
+    .tab-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .tab-btn:hover { background:#e2e8f0; }
+    .controls { display:flex; gap:12px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
+    .search-box input { padding:10px 14px; border-radius:8px; border:2px solid var(--border); min-width:280px; font-size:14px; transition:border 0.3s; }
+    .search-box input:focus { outline:none; border-color:var(--primary); }
+
+    .pagination-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:6px 0 16px; }
+    .page-chip { background:#f1f5f9; border:1px solid var(--border); border-radius:18px; padding:8px 12px; font-weight:600; color:var(--text-light); }
+    .page-link { text-decoration:none; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:#fff; color:var(--text-dark); font-weight:600; transition:all 0.2s; }
+    .page-link:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .page-link.disabled { opacity:0.45; pointer-events:none; }
+
+    .grid { display:grid; grid-template-columns: 1fr 600px; gap:20px; align-items:start; }
+    .card { background:var(--card-bg); padding:16px; border-radius:10px; box-shadow:var(--shadow); border:1px solid var(--border); }
+
+    .driver-cards { display:flex; flex-wrap:wrap; gap:18px; }
+    .driver-card { width:280px; background:var(--card-bg); padding:16px; border-radius:10px; box-shadow:var(--shadow); position:relative; border:1px solid var(--border); transition:transform 0.3s, box-shadow 0.3s; }
+    .driver-card:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,0.15); }
+    .driver-card h3 { margin:0 0 10px 0; color:var(--text-dark); font-size:17px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .driver-card p { margin:6px 0; font-size:14px; color:var(--text-light); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .card-actions { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; }
+    .btn { padding:10px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:600; transition:all 0.3s; font-size:14px; }
+    .btn.view { background:#2980b9; color:#fff; }
+    .btn.view:hover { background:#1f5f8b; }
+    .btn.edit { background:var(--ok); color:#fff; }
+    .btn.edit:hover { background:#1e8449; }
+    .btn.delete { background:var(--danger); color:#fff; }
+    .btn.delete:hover { background:#c0392b; }
+    .btn.add { background:var(--accent); color:#fff; }
+    .btn.add:hover { background:#2874a6; }
+
+    /* Users list */
+    .users-list { display:flex; flex-direction:column; gap:10px; }
+    .user-row { display:flex; align-items:center; gap:14px; justify-content:space-between; padding:14px; background:var(--card-bg); border-radius:10px; box-shadow:var(--shadow); border:1px solid var(--border); transition:all 0.3s; }
+    .user-row:hover { box-shadow:0 4px 12px rgba(0,0,0,0.12); }
+    .user-info { display:flex; gap:14px; align-items:center; flex:1; min-width:0; }
+    .user-info > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .badge { padding:8px 12px; border-radius:8px; font-weight:700; font-size:13px; color:#fff; white-space:nowrap; }
+    .badge.HR{background:#16a085}.badge.OpsManager{background:#2471a3}.badge.OpsSupervisor{background:#d68910}.badge.FleetManager{background:#7d3c98}.badge.FinanceManager{background:#ca6f1e}.badge.SuperAdmin{background:#1c2833}
+    .badge.OpsCoordinator{background:#5b2c6f}
+
+    /* modal */
+    .modal { display:none; position:fixed; left:0; top:0; right:0; bottom:0; background:rgba(0,0,0,0.65); justify-content:center; align-items:center; z-index:9999; }
+    .modal.show { display:flex; }
+    .modal-content { width:900px; max-width:95%; max-height:90vh; overflow-y:auto; background:var(--card-bg); border-radius:12px; padding:24px; box-shadow:0 10px 50px rgba(0,0,0,0.25); }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid var(--border); padding-bottom:12px; }
+    .modal-header h2 { margin:0; color:var(--text-dark); }
+    .close { cursor:pointer; font-size:28px; font-weight:bold; color:var(--text-dark); background:transparent; border:none; transition:color 0.3s; }
+    .close:hover { color:var(--danger); }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    label { display:block; font-weight:600; font-size:14px; margin-bottom:6px; color:var(--text-dark); }
+    input[type="text"], input[type="date"], input[type="datetime-local"], input[type="number"], select, textarea, input[type="email"], input[type="password"] {
+      width:100%; padding:10px 34px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; font-size:14px; transition:border 0.3s;
+    }
+    input[type="text"]:focus, input[type="date"]:focus, input[type="datetime-local"]:focus, input[type="number"]:focus, select:focus, textarea:focus, input[type="email"]:focus, input[type="password"]:focus {
+      outline:none; border-color:var(--primary);
+    }
+    textarea { min-height:90px; resize:vertical; }
+    .image-row { display:flex; gap:12px; margin-top:10px; flex-wrap:wrap; }
+    .image-row img { max-height:180px; border-radius:8px; box-shadow:var(--shadow); object-fit:contain; }
+    .muted { color:#64748b; font-size:13px; }
+    .small { font-size:14px; color:var(--text-light); }
+
+    @media (max-width:900px){   .driver-card { width:calc(50% - 20px); }     .grid { grid-template-columns: 1fr; }   }
+    @media (max-width:600px){     .driver-card { width:100%; }     .grid-2 { grid-template-columns:1fr; }   }
+
+    /* Toast Notification Styling */
+    .toast-container { position: fixed; top: 20px; left: 20px; display: flex; flex-direction: column; gap: 12px; z-index: 99999;}
+    .toast {  background: #27ae60;  color: white;  padding: 14px 20px;  border-radius: 8px;  box-shadow: 0 6px 20px rgba(0,0,0,0.3);  opacity: 0;  transform: translateX(-100%);  transition: all 0.4s ease-in-out;  white-space: nowrap; font-weight:600; font-size:15px;}
+    .toast.show { opacity: 1; transform: translateX(0);}
+    .toast.error { background: #c0392b; }
+    .toast.info { background: #2980b9; }
+    /* Overlay */
+  #offboardingModal {  display:none;  position:fixed;  top:0; left:0; width:100%; height:100%;  background:rgba(0,0,0,0.6);  justify-content:center;  align-items:center;  animation: fadeIn .2s ease-in-out;  z-index:9999;
+  }
+  @keyframes fadeIn {  from { opacity:0; } to { opacity:1; }}
+  /* Modal Box */
+  .off-modal-content {  background:white;  width:90%;  max-width:650px;  border-radius:14px;  padding:20px;    max-height:85vh;    overflow-y:auto;    box-shadow:0 0 20px rgba(0,0,0,0.3);    animation: popUp .2s ease; }
+@keyframes popUp { from { transform:scale(0.9); opacity:0; } to { transform:scale(1); opacity:1; }}
+
+  /* Timeline block */
+.timeline-item {   border-left:3px solid #3a7afe;   padding:10px 15px;   margin:12px 0;   background:#f6f8ff;  border-radius:8px;}
+.timeline-item h3 {margin:0 0 6px;color:#3a7afe;}
+  /* Labels */
+.dept-label { font-weight:bold; margin-top:8px;}
+.dept-time {font-size:13px;color:#666; margin-bottom:6px;}
+.timeline {  list-style: none;  padding-left: 0;  position: relative;}
+.timeline::before {  content: '';  position: absolute;  left: 20px;  top: 0;  bottom: 0;  width: 4px;  background: #ddd;  border-radius: 2px;}
+.timeline-item {  position: relative;  padding: 10px 40px;  margin-bottom: 20px;}
+.timeline-item::before {  content: '';  position: absolute;  left: 12px; width: 16px;  height: 16px;  border-radius: 50%;  background: #ddd;  top: 10px;  border: 3px solid white;  box-shadow: 0 0 0 2px #ddd;}
+.timeline-item.completed::before {  background: #28a745; /* green */  box-shadow: 0 0 0 2px #28a745;}
+.timeline-item h4 { margin: 0 0 5px;}
+.timeline-item p {  margin: 0;  font-size: 14px;  color: #555;}
+  </style>
+  <style type="text/css">
+  .apexcharts-canvas {  position: relative; user-select: none;}
+.apexcharts-canvas ::-webkit-scrollbar { -webkit-appearance: none; width: 6px;}
+.apexcharts-canvas ::-webkit-scrollbar-thumb { border-radius: 4px; background-color: rgba(0, 0, 0, .5); box-shadow: 0 0 1px rgba(255, 255, 255, .5); -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);}
+.apexcharts-canvas.apexcharts-theme-dark { background: #424242;}
+.apexcharts-inner { position: relative;}
+.apexcharts-text tspan { font-family: inherit;}
+.legend-mouseover-inactive { transition: 0.15s ease all; opacity: 0.20;}
+.apexcharts-series-collapsed { opacity: 0;}
+.apexcharts-tooltip { border-radius: 5px; box-shadow: 2px 2px 6px -4px #999; cursor: default; font-size: 14px; left: 62px; opacity: 0; pointer-events: none; position: absolute; top: 20px; overflow: hidden; white-space: nowrap;z-index: 12; transition: 0.15s ease all;}
+.apexcharts-tooltip.apexcharts-active { opacity: 1; transition: 0.15s ease all;}
+.apexcharts-tooltip.apexcharts-theme-light { border: 1px solid #e3e3e3; background: rgba(255, 255, 255, 0.96);}
+.apexcharts-tooltip.apexcharts-theme-dark { color: #fff; background: rgba(30, 30, 30, 0.8);}
+.apexcharts-tooltip * { font-family: inherit;}
+.apexcharts-tooltip-title { padding: 6px; font-size: 15px; margin-bottom: 4px;}
+.apexcharts-tooltip.apexcharts-theme-light .apexcharts-tooltip-title { background: #ECEFF1; border-bottom: 1px solid #ddd;}
+.apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-title { background: rgba(0, 0, 0, 0.7); border-bottom: 1px solid #333;}
+.apexcharts-tooltip-text-value,
+.apexcharts-tooltip-text-z-value { display: inline-block; font-weight: 600; margin-left: 5px;}
+.apexcharts-tooltip-text-z-label:empty,
+.apexcharts-tooltip-text-z-value:empty {  display: none;}
+.apexcharts-tooltip-text-value,
+.apexcharts-tooltip-text-z-value {  font-weight: 600;}
+.apexcharts-tooltip-marker {  width: 12px;  height: 12px;  position: relative;  top: 0px;  margin-right: 10px;  border-radius: 50%;}
+.apexcharts-tooltip-series-group {  padding: 0 10px;  display: none;  text-align: left;  justify-content: left;  align-items: center;}
+.apexcharts-tooltip-series-group.apexcharts-active .apexcharts-tooltip-marker {  opacity: 1;}
+.apexcharts-tooltip-series-group.apexcharts-active,
+.apexcharts-tooltip-series-group:last-child {  padding-bottom: 4px;}
+.apexcharts-tooltip-series-group-hidden {  opacity: 0;  height: 0;  line-height: 0;  padding: 0 !important;}
+.apexcharts-tooltip-y-group {  padding: 6px 0 5px;}
+.apexcharts-tooltip-candlestick {  padding: 4px 8px;}
+.apexcharts-tooltip-candlestick>div { margin: 4px 0;}
+.apexcharts-tooltip-candlestick span.value {  font-weight: bold;}
+.apexcharts-tooltip-rangebar {  padding: 5px 8px;}
+.apexcharts-tooltip-rangebar .category {  font-weight: 600;  color: #777;}
+.apexcharts-tooltip-rangebar .series-name {  font-weight: bold;  display: block;  margin-bottom: 5px;}
+.apexcharts-xaxistooltip {  opacity: 0;  padding: 9px 10px;  pointer-events: none;  color: #373d3f;  font-size: 13px;  text-align: center;  border-radius: 2px;  position: absolute;  z-index: 10;  background: #ECEFF1;  border: 1px solid #90A4AE;  transition: 0.15s ease all;}
+.apexcharts-xaxistooltip.apexcharts-theme-dark { background: rgba(0, 0, 0, 0.7); border: 1px solid rgba(0, 0, 0, 0.5); color: #fff;}
+.apexcharts-xaxistooltip:after,
+.apexcharts-xaxistooltip:before { left: 50%; border: solid transparent; content: " "; height: 0; width: 0 ; position: absolute; pointer-events: none;}
+.apexcharts-xaxistooltip:after {  border-color: rgba(236, 239, 241, 0);  border-width: 6px;  margin-left: -6px;}
+.apexcharts-xaxistooltip:before {  border-color: rgba(144, 164, 174, 0);  border-width: 7px;  margin-left: -7px;}
+.apexcharts-xaxistooltip-bottom:after,
+.apexcharts-xaxistooltip-bottom:before {  bottom: 100%;}
+.apexcharts-xaxistooltip-top:after,
+.apexcharts-xaxistooltip-top:before { top: 100%;}
+.apexcharts-xaxistooltip-bottom:after {  border-bottom-color: #ECEFF1;}
+.apexcharts-xaxistooltip-bottom:before {  border-bottom-color: #90A4AE;}
+.apexcharts-xaxistooltip-bottom.apexcharts-theme-dark:after {  border-bottom-color: rgba(0, 0, 0, 0.5);}
+.apexcharts-xaxistooltip-bottom.apexcharts-theme-dark:before { border-bottom-color: rgba(0, 0, 0, 0.5);}
+.apexcharts-xaxistooltip-top:after {  border-top-color: #ECEFF1}
+.apexcharts-xaxistooltip-top:before {  border-top-color: #90A4AE}
+.apexcharts-xaxistooltip-top.apexcharts-theme-dark:after {  border-top-color: rgba(0, 0, 0, 0.5);}
+.apexcharts-xaxistooltip-top.apexcharts-theme-dark:before {  border-top-color: rgba(0, 0, 0, 0.5);}
+.apexcharts-xaxistooltip.apexcharts-active { opacity: 1; transition: 0.15s ease all;}
+.apexcharts-yaxistooltip {  opacity: 0;  padding: 4px 10px;  pointer-events: none;  color: #373d3f;  font-size: 13px;  text-align: center;  border-radius: 2px;  position: absolute;  z-index: 10;  background: #ECEFF1;  border: 1px solid #90A4AE;}
+.apexcharts-yaxistooltip.apexcharts-theme-dark {  background: rgba(0, 0, 0, 0.7);  border: 1px solid rgba(0, 0, 0, 0.5);  color: #fff;}
+.apexcharts-yaxistooltip:after,
+.apexcharts-yaxistooltip:before {  top: 50%;  border: solid transparent;  content: " ";  height: 0;  width: 0 ; position: absolute; pointer-events: none;}
+.apexcharts-yaxistooltip:after {  border-color: rgba(236, 239, 241, 0);  border-width: 6px;  margin-top: -6px;}
+.apexcharts-yaxistooltip:before {  border-color: rgba(144, 164, 174, 0);  border-width: 7px;  margin-top: -7px;}
+.apexcharts-yaxistooltip-left:after,
+.apexcharts-yaxistooltip-left:before {  left: 100%;}
+.apexcharts-yaxistooltip-right:after,
+.apexcharts-yaxistooltip-right:before { right: 100%;}
+.apexcharts-yaxistooltip-left:after {  border-left-color: #ECEFF1;}
+.apexcharts-yaxistooltip-left:before {  border-left-color: #90A4AE;}
+.apexcharts-yaxistooltip-left.apexcharts-theme-dark:after { border-left-color: rgba(0, 0, 0, 0.5);}
+.apexcharts-yaxistooltip-left.apexcharts-theme-dark:before {  border-left-color: rgba(0, 0, 0, 0.5);}
+.apexcharts-yaxistooltip-right:after { border-right-color: #ECEFF1;}
+.apexcharts-yaxistooltip-right:before {  border-right-color: #90A4AE;}
+.apexcharts-yaxistooltip-right.apexcharts-theme-dark:after { border-right-color: rgba(0, 0, 0, 0.5);}
+.apexcharts-yaxistooltip-right.apexcharts-theme-dark:before {  border-right-color: rgba(0, 0, 0, 0.5);}
+.apexcharts-yaxistooltip.apexcharts-active {  opacity: 1;}
+.apexcharts-yaxistooltip-hidden {  display: none;}
+.apexcharts-xcrosshairs,
+.apexcharts-ycrosshairs { pointer-events: none;  opacity: 0;  transition: 0.15s ease all;}
+.apexcharts-xcrosshairs.apexcharts-active,
+.apexcharts-ycrosshairs.apexcharts-active {  opacity: 1;  transition: 0.15s ease all;}
+.apexcharts-ycrosshairs-hidden {  opacity: 0;}
+.apexcharts-selection-rect { cursor: move;}
+.svg_select_boundingRect, .svg_select_points_rot {  pointer-events: none;  opacity: 0;  visibility: hidden;}
+.apexcharts-selection-rect + g .svg_select_boundingRect,
+.apexcharts-selection-rect + g .svg_select_points_rot { opacity: 0;  visibility: hidden;}
+.apexcharts-selection-rect + g .svg_select_points_l,
+.apexcharts-selection-rect + g .svg_select_points_r { cursor: ew-resize; opacity: 1; visibility: visible;}
+.svg_select_points { fill: #efefef;  stroke: #333;  rx: 2;}
+.apexcharts-canvas.apexcharts-zoomable .hovering-zoom {  cursor: crosshair}
+.apexcharts-canvas.apexcharts-zoomable .hovering-pan { cursor: move}
+.apexcharts-zoom-icon,
+.apexcharts-zoomin-icon,
+.apexcharts-zoomout-icon,
+.apexcharts-reset-icon,
+.apexcharts-pan-icon,
+.apexcharts-selection-icon,
+.apexcharts-menu-icon,
+.apexcharts-toolbar-custom-icon { cursor: pointer; width: 20px;  height: 20px;  line-height: 24px;  color: #6E8192;  text-align: center;}
+.apexcharts-zoom-icon svg,
+.apexcharts-zoomin-icon svg,
+.apexcharts-zoomout-icon svg,
+.apexcharts-reset-icon svg,
+.apexcharts-menu-icon svg {  fill: #6E8192;}
+.apexcharts-selection-icon svg {  fill: #444;  transform: scale(0.76)}
+.apexcharts-theme-dark .apexcharts-zoom-icon svg,
+.apexcharts-theme-dark .apexcharts-zoomin-icon svg,
+.apexcharts-theme-dark .apexcharts-zoomout-icon svg,
+.apexcharts-theme-dark .apexcharts-reset-icon svg,
+.apexcharts-theme-dark .apexcharts-pan-icon svg,
+.apexcharts-theme-dark .apexcharts-selection-icon svg,
+.apexcharts-theme-dark .apexcharts-menu-icon svg,
+.apexcharts-theme-dark .apexcharts-toolbar-custom-icon svg {  fill: #f3f4f5;}
+.apexcharts-canvas .apexcharts-zoom-icon.apexcharts-selected svg,
+.apexcharts-canvas .apexcharts-selection-icon.apexcharts-selected svg,
+.apexcharts-canvas .apexcharts-reset-zoom-icon.apexcharts-selected svg { fill: #008FFB;}
+.apexcharts-theme-light .apexcharts-selection-icon:not(.apexcharts-selected):hover svg,
+.apexcharts-theme-light .apexcharts-zoom-icon:not(.apexcharts-selected):hover svg,
+.apexcharts-theme-light .apexcharts-zoomin-icon:hover svg,
+.apexcharts-theme-light .apexcharts-zoomout-icon:hover svg,
+.apexcharts-theme-light .apexcharts-reset-icon:hover svg,
+.apexcharts-theme-light .apexcharts-menu-icon:hover svg {fill: #333;}
+.apexcharts-selection-icon,
+.apexcharts-menu-icon {  position: relative;}
+.apexcharts-reset-icon {  margin-left: 5px;}
+.apexcharts-zoom-icon,
+.apexcharts-reset-icon,
+.apexcharts-menu-icon {  transform: scale(0.85);}
+.apexcharts-zoomin-icon,
+.apexcharts-zoomout-icon { transform: scale(0.7)}
+.apexcharts-zoomout-icon {  margin-right: 3px;}
+.apexcharts-pan-icon {  transform: scale(0.62);  position: relative;  left: 1px;  top: 0px;}
+.apexcharts-pan-icon svg {  fill: #fff;  stroke: #6E8192;  stroke-width: 2;}
+.apexcharts-pan-icon.apexcharts-selected svg {  stroke: #008FFB;}
+.apexcharts-pan-icon:not(.apexcharts-selected):hover svg { stroke: #333;}
+.apexcharts-toolbar { position: absolute;  z-index: 11;  max-width: 176px;  text-align: right;  border-radius: 3px;  padding: 0px 6px 2px 6px;  display: flex; justify-content: space-between; align-items: center;}
+.apexcharts-menu {  background: #fff;  position: absolute;  top: 100%;  border: 1px solid #ddd;border-radius: 3px;  padding: 3px;  right: 10px;  opacity: 0;  min-width: 110px;  transition: 0.15s ease all; pointer-events: none;}
+.apexcharts-menu.apexcharts-menu-open {  opacity: 1;  pointer-events: all;  transition: 0.15s ease all;}
+.apexcharts-menu-item {  padding: 6px 7px;  font-size: 12px;  cursor: pointer;}
+.apexcharts-theme-light .apexcharts-menu-item:hover {  background: #eee;}
+.apexcharts-theme-dark .apexcharts-menu {  background: rgba(0, 0, 0, 0.7);  color: #fff;}
+@media screen and (min-width: 768px) { .apexcharts-canvas:hover .apexcharts-toolbar {   opacity: 1; }}
+.apexcharts-datalabel.apexcharts-element-hidden { opacity: 0;}
+.apexcharts-pie-label,
+.apexcharts-datalabels,
+.apexcharts-datalabel,
+.apexcharts-datalabel-label,
+.apexcharts-datalabel-value { cursor: default; pointer-events: none;}
+.apexcharts-pie-label-delay { opacity: 0;  animation-name: opaque;  animation-duration: 0.3s;  animation-fill-mode: forwards;  animation-timing-function: ease;}
+.apexcharts-canvas .apexcharts-element-hidden {  opacity: 0;}
+.apexcharts-hide .apexcharts-series-points { opacity: 0;}
+.apexcharts-gridline,
+.apexcharts-annotation-rect,
+.apexcharts-tooltip .apexcharts-marker,
+.apexcharts-area-series .apexcharts-area,
+.apexcharts-line,
+.apexcharts-zoom-rect,
+.apexcharts-toolbar svg,
+.apexcharts-area-series .apexcharts-series-markers .apexcharts-marker.no-pointer-events,
+.apexcharts-line-series .apexcharts-series-markers .apexcharts-marker.no-pointer-events,
+.apexcharts-radar-series path,
+.apexcharts-radar-series polygon {  pointer-events: none;}
+.apexcharts-marker {  transition: 0.15s ease all;}
+@keyframes opaque {  0% {    opacity: 0;  }  100% {    opacity: 1;  }}
+@keyframes resizeanim { from {    opacity: 0;  }  to {    opacity: 0;  }}
+.resize-triggers {  animation: 1ms resizeanim;  visibility: hidden;  opacity: 0;}
+.resize-triggers,
+.resize-triggers>div,
+.contract-trigger:before {  content: " ";  display: block;  position: absolute;  top: 0;  left: 0;  height: 100%;  width: 100%;  overflow: hidden;}
+.resize-triggers>div {  background: #eee;  overflow: auto;}
+.contract-trigger:before {  width: 200%;  height: 200%;}
+</style>
+</head>
+<body >
+<div class="navbar">
+<div class="brand"><img alt="DOBS Logo" src="/static/DOBS.png" style="width: 40%;"/> لوحة تحكم المشرف الأعلى</div>
+<div class="nav-right">
+<!--<button class="tab-link" onclick="showSection('drivers')">Drivers</button>-->
+<a href="{{ url_for('public.set_language', lang='en') }}" class="btn btn-sm btn-outline-primary">English</a>
+
+<button class="tab-link" onclick="showSection('users')">المستخدمون</button>
+<button onclick="openChangePasswordModal()">تغيير كلمة المرور</button>
+<a href="{{ url_for('auth.logout') }}">تسجيل الخروج</a>
+</div>
+</div>
+<div class="container">
+<div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;">
+<div>
+<h1>إدارة السائقين والمستعملين</h1>
+<div class="muted">إدارة السائقين (المعلقين والمكتملين)، وإدارة المستخدمين الإداريين.</div>
+</div>
+<div style="display:flex; gap:10px; align-items:center;">
+          {% if current_user.role in ["HR", "SuperAdmin"] %}
+      <button style="border: none;background-color: #6c5ce7;border-radius: 5px;"><div>
+    <a href="/reports/reports" class="">
+        <div>
+            <div>
+                <h5 style=" color: #ffffff; padding-left: 5px; line-height: 1.82; font-size: 1rem; font-weight: 900; padding-right: 5px;/* border-radius: 10px; */">+ تقارير</h5>
+                 </div></div></a></div></button>
+                 {% endif %}
+<button class="btn add" onclick="openAddUserModal()">+ إضافة مستخدم</button>
+</div>
+</div>
+<div class="single_element">
+<div class="quick_activity">
+<div class="row">
+<div class="col-12">
+<div class="quick_activity_wrap" style="display: grid;grid-template-columns: repeat(1, 1fr);">
+<div style="display: grid;grid-gap: 10px;grid-template-columns: repeat(6, 1fr);">
+<div class="single_quick_activity" style=" padding: 10px 20px;">
+<h4>إجمالي السائقين:</h4>
+<h3> <span class="counter">{{ total_drivers or 0 }}</span> </h3>
+</div>
+<div class="single_quick_activity" style=" padding: 10px 20px;">
+<h4>إجمالي المستخدمين:</h4>
+<h3><span class="counter">{{ total_users or 0 }}</span> </h3>
+</div>
+<div class="single_quick_activity" style=" padding: 10px 20px;">
+<h5 style="color:#ffffff;">مكتمل<br/>تم دمجه</h5>
+<h3 class="counter">{{ total_completed_onboarded or 0 }} </h3>
+</div>
+<div class="single_quick_activity" style=" padding: 10px 20px;">
+<h5 style="color:#ffffff;">قيد الانتظار<br/>تم الإلحاق</h5>
+<h3 class="counter">{{ total_pending_onboarded or 0 }} </h3>
+</div>
+<div class="single_quick_activity" style=" padding: 10px 20px; background-color: #2c3e50;">
+<h5 style="color:#ffffff;">مكتمل<br/>تم إزالة العضوية</h5>
+<h3 class="counter">{{ total_completed_offboarded or 0 }} </h3>
+</div>
+<div class="single_quick_activity" style=" padding: 10px 20px; background-color: #3498db;">
+<h5 style="color:#ffffff;">قيد الانتظار<br/>تم الإلغاء </h5>
+<h3 class="counter">{{ total_pending_offboarded or 0 }} </h3>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Main grid: left list (drivers/users) + right stats / quick actions -->
+<div class="grid">
+<div style="border-radius: 20px;padding: 20px;border: 1px solid #ccc;min-height: 100%;background-color: #60227338;">
+<!-- Tabs -->
+<div class="tabs">
+<button class="tab-btn active" id="tabPendingBtn" onclick="switchDriverTab('pending')">السائقون المعلقون</button>
+<button class="tab-btn" id="tabOnboardedBtn" onclick="switchDriverTab('onboarded')">تم الانضمام بالكامل</button>
+<button class="tab-btn" id="tabPendingOffboardingBtn" onclick="switchDriverTab('pendingOffboarding')">إجراءات المغادرة معلقة</button>
+<button class="tab-btn" id="tabFullyOffboardedBtn" onclick="switchDriverTab('fullyOffboarded')">تم إلغاء التوظيف بالكامل</button>
+</div>
+<div class="tab-content" style="margin-top:12px;">
+<div class="controls">
+<div class="search-box">
+<input id="globalSearch" oninput="globalSearchFilter()" value="{{ q or '' }}" placeholder="ابحث عن السائقين بالاسم / الإقامة/ ة."/>
+</div>
+</div>
+<div class="pagination-bar">
+  <span class="page-chip">صفحة {{ page }} · {{ per_page }} لكل صفحة</span>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <a class="page-link {% if page <= 1 %}disabled{% endif %}" href="{% if page > 1 %}{{ url_for('admin.dashboard', page=page-1, per_page=per_page, q=q, lang='ar') }}{% else %}#{% endif %}">السابق</a>
+    <a class="page-link {% if page >= total_pages %}disabled{% endif %}" href="{% if page < total_pages %}{{ url_for('admin.dashboard', page=page+1, per_page=per_page, q=q, lang='ar') }}{% else %}#{% endif %}">التالي</a>
+  </div>
+  <small style="color:var(--text-light);">القوائم مقسمة إلى صفحات.</small>
+</div>
+<!-- Pending drivers -->
+              <div id="pendingTab" style="display:block;">
+                <div class="driver-cards" id="pendingCards">
+                  {% for driver in drivers if driver.onboarding_stage != "Completed" %}
+                  <div class="driver-card" data-driver='{{ driver | tojson | safe }}'>
+                    <h3>{{ driver.get('name') }}</h3>
+                    <p class="small"><strong>الإقامة:</strong> {{ driver.get('iqaama_number', '') }}</p>
+                    <p class="small"><strong>الحالة:</strong> {{ driver.get('onboarding_stage') or "" }}</p>
+
+                    <div class="card-actions">
+                      <button class="btn view" onclick="openViewModal(event,this)">عرض</button>
+                      <button class="btn edit" onclick="openEditModal(event,this)">Edit</button>
+
+                      <form method="POST" action="{{ url_for('admin.delete_driver', driver_id=driver.get('id')) }}" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn delete" onclick="return confirm('Delete this driver?')">Delete</button>
+                      </form>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+              <!-- Onboarded -->
+              <!-- Fully Onboarded (Completed but Not Offboarded) -->
+              <div id="onboardedTab" style="display:none;">
+                <div class="driver-cards" id="onboardedCards">
+                  {% set found = false %}
+                  {% for driver in fully_onboarded_drivers %}
+                    {% set found = true %}
+                    <div class="driver-card" data-driver='{{ driver | tojson | safe }}'>
+                      <h3>{{ driver.name }}</h3>
+                      <p class="small"><strong>الإقامة:</strong> {{ driver.iqaama_number or '' }}</p>
+                      <p class="small"><strong>تم الموافقة من المالية:</strong> {{ driver.finance_approved_at or "لا يوجد قوى، لم يتم نقل الكفالة" }}</p>
+
+                      <div class="card-actions">
+                        <button class="btn view" onclick="openViewModal(event,this)">عرض</button>
+                        <button class="btn edit" onclick="openEditModal(event,this)">تعديل</button>
+                        <form method="POST" action="{{ url_for('admin.delete_driver', driver_id=driver.id) }}" style="display:inline;">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <button type="submit" class="btn delete" onclick="return confirm('Delete this driver?')">حذف</button>
+                        </form>
+                      </div>
+                    </div>
+                  {% endfor %}
+
+                  {% if not found %}
+                    <p class="muted small" style="text-align:center;">لم يتم العثور على سائقين مكتملين التسجيل.</p>
+                  {% endif %}
+                </div>
+              </div>
+              <!-- Pending Offboarding -->
+              <!-- Pending Offboarding -->
+              <div id="pendingOffboardingTab" style="display:none; width: 100%;">
+                <h2>السائقون للخروج</h2>
+                <!-- Search Box -->
+                <div class="driver-cards">
+                  {% for driver in pending_offboarding_drivers %}
+                    <div class="driver-card offboarding-card" data-driver='{{ driver | tojson | safe }}'>
+                        <h3>{{ driver.name }}</h3>
+                        <p><strong>الإقامة:</strong> {{ driver.iqaama_number }}</p>
+                        <p class="small">
+                          <strong>مرحلة إنهاء الخدمة:</strong>
+                          {{ driver.offboarding_stage or "Pending" }}
+                        </p>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+              <!-- Fully Offboarded -->
+              <div id="fullyOffboardedTab" style="display:none;">
+                <div class="driver-cards" id="fullyOffboardedCards">
+                  {% for driver in completed_offboarding_drivers %}
+                    <div class="driver-card offboarding-card" data-driver='{{ driver | tojson | safe }}'>
+                      <h3>{{ driver.get('name') }}</h3>
+                        <p class="small"><strong>الإقامة:</strong> {{ driver.get('iqaama_number', '') }}</p>
+                        <p class="small"><strong>مرحلة إنهاء الخدمة:</strong> {{ driver.get('offboarding_stage') or "" }}</p>
+                      </div>
+                  {% else %}
+                    <p class="muted small" style="text-align:center;">لم يتم العثور على سائقي المركبات الذين تم إنهاء خدماتهم بالكامل.</p>
+                  {% endfor %}
+                </div>
+              </div>
+            <script>
+              /* Search filter */
+              function filterOffboardingDrivers() {
+                const query = (document.getElementById("offboardingSearch").value || "").toLowerCase();
+
+                document.querySelectorAll(".offboarding-card").forEach(card => {
+                  const driver = JSON.parse(card.dataset.driver || "{}");
+                  const text = (driver.name + " " + driver.iqama_number).toLowerCase();
+                  card.style.display = text.includes(query) ? "" : "none";
+                });
+              }
+
+              document.addEventListener("DOMContentLoaded", function() {
+                const modal = document.getElementById("offboardingProgressModal");
+                const timelineContainer = document.getElementById("offboardingTimeline");
+                const closeModal = modal.querySelector(".close-modal");
+
+                closeModal.addEventListener("click", () => modal.style.display = "none");
+
+                /* Attach click listener to ALL cards */
+                document.querySelectorAll(".offboarding-card").forEach(card => {
+                  card.addEventListener("click", () => {
+                    const driver = JSON.parse(card.dataset.driver || "{}");
+
+                    /* If no offboarding record exists */
+                    if (!driver.records || driver.records.length === 0) {
+                      timelineContainer.innerHTML =
+                        `<p><strong>Driver:</strong> ${driver.name} (${driver.iqaama_number})</p>
+                        <p>لا توجد تفاصيل عن إنهاء الخدمة.</p>`;
+                      modal.style.display = "block";
+                      return;
+                    }
+
+                    const record = driver.records[0];
+
+                    const stages = [
+                      { label:"Ops Supervisor", clearedAt: record.ops_supervisor_cleared_at, note: record.ops_supervisor_note },
+                      { label:"Fleet",         clearedAt: record.fleet_cleared_at,         note: record.fleet_damage_report },
+                      { label:"Finance",       clearedAt: record.finance_cleared_at,       note: record.finance_note },
+                      { label:"HR",            clearedAt: record.hr_cleared_at,            note: record.hr_note }
+                    ];
+
+                    let html = `
+                      <p><strong>السائق:</strong> ${driver.name} (${driver.iqaama_number})</p>
+                      <p><strong>تم الطلب بواسطة:</strong> ${driver.offboard_requested_by}</p>
+                      <p><strong>السبب:</strong> ${driver.offboard_reason}</p>
+                      <p><strong>تم الطلب في:</strong> ${driver.offboard_requested_at || "N/A"}</p>
+                      <ul class="timeline">
+                    `;
+
+                    stages.forEach(s => {
+                      const status = s.clearedAt ? "مكتمل" :  "قيد الانتظار";
+
+                      html += `
+                        <li class="timeline-item ${status.toLowerCase()}">
+                          <h4>${s.label}</h4>
+                          <p><strong>ملاحظات:</strong> ${s.note || "—"}</p>
+                          <p><strong>تاريخ الإنجاز:</strong> ${s.clearedAt || "قيد الانتظار"}</p>
+                          <p><strong>الحالة:</strong> ${status}</p>
+                        </li>
+                      `;
+                    });
+
+                    /* Offboarding fully completed */
+                    if (record.hr_cleared === true) {
+                      html += `
+                        <li class="timeline-item completed">
+                          <h4>تم إكمال إنهاء الخدمة</h4>
+                          <p><strong>تاريخ الإنجاز:</strong> ${record.updated_at || "N/A"}</p>
+                        </li>
+                      `;
+                    }
+
+                    html += `</ul>`;
+                    timelineContainer.innerHTML = html;
+
+                    modal.style.display = "block";
+                  });
+                });
+
+              });
+            </script>
+            <div id="offboardingProgressModal" class="modal" style="display:none;">
+              <div class="modal-content" style="max-width:700px; margin:auto; padding:20px; border-radius:8px; background:white; position:relative;">
+                <span class="close-modal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:24px;">&times;</span>
+                <h2>تقدم إنهاء الخدمة</h2>
+                <div id="offboardingTimeline" style="margin-top:20px;"></div>
+              </div>
+            </div>
+            </div>
+          </div>
+          <div class="col-lg-12">
+                  <!-- RIGHT COLUMN: users list + stats -->
+            <div>
+              
+              <div class="card" style=" width: 600px;">
+                <h2>المستخدمون</h2>
+                <div style="margin:8px 0;">
+                  <input id="userSearch" placeholder="Search users..." oninput="filterUsers()" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc;">
+                </div>
+                <div class="users-list" id="usersList">
+                  {% for user in users %}
+                  <div class="user-row" data-user='{{ user | tojson | safe }}'>
+                    <div class="user-info">
+                      <div>
+                        <div style="font-weight:700">{{ user.get('name') or user.get('username') }}</div>
+                        <div class="small muted">{{ user.get('email') or '' }}</div>
+                      </div>
+                      <div>
+                        <span class="badge {{ user.get('role') }}">{{ user.get('designation') }}</span>
+                      </div>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                      <button class="btn view" onclick="openUserEditModalFromRow(event,this)">تعديل</button>
+                      <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.get('id')) }}" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn delete" onclick="return confirm('Delete this user?')">حذف</button>
+                      </form>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+      
+
+<!-- ========== VIEW DRIVER MODAL ========== -->
+<div id="viewModal" class="modal" aria-hidden="true">
+  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="viewModalTitle">
+    <div class="modal-header">
+      <h2 id="viewModalTitle">تفاصيل السائق</h2>
+      <button class="close" onclick="closeModal('viewModal')">&times;</button>
+    </div>
+    <div id="viewContent" style="padding:16px;"></div>
+  </div>
+</div>
+
+<script>
+  // Escape HTML to prevent XSS
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // Format ISO datetime string to YYYY-MM-DD HH:MM
+  function formatDateTime(dtStr) {
+    if (!dtStr) return 'Pending';
+    const date = new Date(dtStr);
+    if (isNaN(date)) return dtStr;
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+  }
+
+  // Open view modal
+
+function openViewModal(e) {
+  e.stopPropagation();  // stop event bubbling
+  try {
+    // Find the closest driver card from the clicked button
+    const btn = e.currentTarget; // the button that was clicked
+    const card = btn.closest('.driver-card');
+    if (!card) { 
+      showToast('لم يتم العثور على بطاقة السائق', 'error'); 
+      return; 
+    }
+
+    const d = JSON.parse(card.dataset.driver);
+    if (!d) { showToast('بيانات السائق مفقودة', 'error'); return; }
+
+    let html = '<div style="display:flex;flex-direction:column;gap:16px;">';
+
+    // Basic info
+    html += `<div style="flex:1;min-width:250px;">
+              <h3>${escapeHtml(d.name || '')}</h3>
+              <p><strong>الإقامة:</strong> ${escapeHtml(d.iqaama_number || '')}</p>
+              <p><strong>انتهاء الإقامة:</strong> ${escapeHtml(d.iqaama_expiry || '')}</p>
+              <p><strong>الجنسية:</strong> ${escapeHtml(d.nationality || '')}</p>
+              <p><strong>رقم جوال أبشر:</strong> ${escapeHtml(d.absher_number || '')}</p>
+              <p><strong>الأرقام السابقة للكفالة</strong> ${escapeHtml(d.previous_sponsor_number || '')}</p>
+            </div>`;
+
+    // Business Assignments
+    let businessStr = "None";
+    if (d.business_links && d.business_links.length > 0) {
+      businessStr = d.business_links.map(link => {
+        const bid = link.business_id_obj;
+        if (!bid) return "Invalid Business";
+        const businessName = bid.business ? bid.business.name : "Unknown Business";
+        const businessIdValue = bid.value ?? "N/A";
+        const businessIdPk = bid.id;
+        return `${escapeHtml(businessName)} — ID Value: ${escapeHtml(businessIdValue)} (BusinessID PK: ${businessIdPk})`;
+      }).join("<br>");
+    }
+    html += `<p><strong>المهام التجارية:</strong><br>${businessStr}</p>`;
+
+    // Images
+    html += '<div class="image-row">';
+    const iqamaUrl = d.iqama_card_upload_url || (d.iqama_card_upload ? `/static/uploads/${encodeURIComponent(d.iqama_card_upload)}` : '');
+    if (iqamaUrl) {
+      html += `<div><label class="small">بطاقة إقامة</label><br><img src="${iqamaUrl}" alt="iqama"></div>`;
+    }
+    if (d.tamm_authorization_ss) {
+      html += `<div><label class="small">لقطة شاشة TAMM</label><br><img src="/static/uploads/${encodeURIComponent(d.tamm_authorization_ss)}" alt="tamm"></div>`;
+    }
+    if (d.transfer_fee_receipt) {
+      html += `<div><label class="small">إيصال تحويل الدفع</label><br><a href="/static/uploads/${encodeURIComponent(d.transfer_fee_receipt)}" target="_blank"><img src="/static/uploads/${encodeURIComponent(d.transfer_fee_receipt)}" alt="receipt"></a></div>`;
+    }
+    if (d.sponsorship_transfer_proof) {
+      html += `<div><label class="small">إثبات نقل الكفالة</label><br><a href="/static/uploads/${encodeURIComponent(d.sponsorship_transfer_proof)}" target="_blank"><img src="/static/uploads/${encodeURIComponent(d.sponsorship_transfer_proof)}" alt="transfer-proof"></a></div>`;
+    }
+    html += '</div>';
+    // HR Uploaded Files (Company / Promissory / Qiwa)
+  html += '<div class="hr-files" style="display:flex;gap:16px;flex-wrap:wrap;">';
+
+  if (d.company_contract_file) {
+      html += `<div>
+                  <label class="small">عقد الشركة</label><br>
+                  <a href="/static/uploads/${encodeURIComponent(d.company_contract_file)}" target="_blank">
+                      ${escapeHtml(d.company_contract_file)}
+                  </a>
+              </div>`;
+  }
+
+  if (d.promissory_note_file) {
+      html += `<div>
+                  <label class="small">سند لأمر</label><br>
+                  <a href="/static/uploads/${encodeURIComponent(d.promissory_note_file)}" target="_blank">
+                      ${escapeHtml(d.promissory_note_file)}
+                  </a>
+              </div>`;
+  }
+
+  if (d.qiwa_contract_file) {
+      html += `<div>
+                  <label class="small">عقد قوى</label><br>
+                  <a href="/static/uploads/${encodeURIComponent(d.qiwa_contract_file)}" target="_blank">
+                      ${escapeHtml(d.qiwa_contract_file)}
+                  </a>
+              </div>`;
+  }
+
+  html += '</div>';
+
+    // Approvals
+    html += '<hr><div style="display:flex;gap:32px;flex-wrap:wrap;">';
+    html += `<div>
+               <p><strong>وافق مدير العمليات:</strong> ${formatDateTime(d.ops_manager_approved_at)}</p>
+               <p><strong>وافقت الموارد البشرية:</strong> ${formatDateTime(d.hr_approved_at)}</p>
+               <p><strong>تمت الموافقة من قبل مشرف العمليات:</strong> ${formatDateTime(d.ops_supervisor_approved_at)}</p>
+             </div>`;
+    html += `<div>
+               <p><strong>تمت الموافقة من قبل مدير الأسطول:</strong> ${formatDateTime(d.fleet_manager_approved_at)}</p>
+               <p><strong>تمت الموافقة من قبل المالية:</strong> ${formatDateTime(d.finance_approved_at)}</p>
+             </div></div>`;
+
+    html += '<hr>';
+    html += `<p><strong>رسوم التحويل المدفوعة:</strong> ${d.transfer_fee_paid ? '✅ Yes' : '❌ No'}</p>`;
+    html += `<p><strong>مبلغ:</strong> ${escapeHtml(d.transfer_fee_amount || '')}</p>`;
+    html += `<p><strong>مدفوع في:</strong> ${formatDateTime(d.transfer_fee_paid_at)}</p>`;
+    html += '</div>';
+
+    document.getElementById('viewContent').innerHTML = html;
+    document.getElementById('viewModal').classList.add('show');
+
+  } catch(err) {
+    console.error('openViewModal error', err);
+    showToast('غير قادر على فتح تفاصيل التعريف — تحقق من وحدة التحكم.', 'error');
+  }
+}
+</script>
+
+
+
+        <!-- ========== EDIT DRIVER MODAL ========== -->
+        <!-- ========== EDIT DRIVER MODAL ========== -->
+        <div id="editModal" class="modal" aria-hidden="true">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>تعديل السائق</h2>
+              <button class="close" onclick="closeModal('editModal')">&times;</button>
+            </div>
+
+            <form id="editForm" method="POST" enctype="multipart/form-data">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="driver_id" id="edit_driver_id">
+
+              <div class="grid-2">
+                <!-- Personal Details -->
+                <div>
+                  <label>الاسم الكامل</label>
+                  <input type="text" id="edit_name" name="name" required>
+                </div>
+                <div>
+                  <label>رقم الإقامة</label>
+                  <input type="text" id="edit_iqama_number" name="iqaama_number" required>
+                </div>
+                <div>
+                  <label>انتهاء الإقامة</label>
+                  <input type="date" id="edit_iqama_expiry" name="iqaama_expiry">
+                </div>
+                <div>
+                  <label>الجنسية</label>
+                  <select id="edit_nationality" name="nationality" >
+<option value="">-- Select Nationality -- / اختر الجنسية --</option>
+
+<option value="Afghanistan">Afghanistan / أفغانستان</option>
+<option value="Albania">Albania / ألبانيا</option>
+<option value="Algeria">Algeria / الجزائر</option>
+<option value="Andorra">Andorra / أندورا</option>
+<option value="Angola">Angola / أنغولا</option>
+<option value="Antigua and Barbuda">Antigua and Barbuda / أنتيغوا وبربودا</option>
+<option value="Argentina">Argentina / الأرجنتين</option>
+<option value="Armenia">Armenia / أرمينيا</option>
+<option value="Australia">Australia / أستراليا</option>
+<option value="Austria">Austria / النمسا</option>
+<option value="Azerbaijan">Azerbaijan / أذربيجان</option>
+
+<option value="Bahamas">Bahamas / الباهاماس</option>
+<option value="Bahrain">Bahrain / البحرين</option>
+<option value="Bangladesh">Bangladesh / بنغلاديش</option>
+<option value="Barbados">Barbados / باربادوس</option>
+<option value="Belarus">Belarus / بيلاروس</option>
+<option value="Belgium">Belgium / بلجيكا</option>
+<option value="Belize">Belize / بليز</option>
+<option value="Benin">Benin / بنين</option>
+<option value="Bhutan">Bhutan / بوتان</option>
+<option value="Bolivia">Bolivia / بوليفيا</option>
+<option value="Bosnia and Herzegovina">Bosnia and Herzegovina / البوسنة والهرسك</option>
+<option value="Botswana">Botswana / بوتسوانا</option>
+<option value="Brazil">Brazil / البرازيل</option>
+<option value="Brunei">Brunei / بروناي</option>
+<option value="Bulgaria">Bulgaria / بلغاريا</option>
+<option value="Burkina Faso">Burkina Faso / بوركينا فاسو</option>
+<option value="Burundi">Burundi / بوروندي</option>
+
+<option value="Cabo Verde">Cabo Verde / الرأس الأخضر</option>
+<option value="Cambodia">Cambodia / كمبوديا</option>
+<option value="Cameroon">Cameroon / الكاميرون</option>
+<option value="Canada">Canada / كندا</option>
+<option value="Central African Republic">Central African Republic / جمهورية أفريقيا الوسطى</option>
+<option value="Chad">Chad / تشاد</option>
+<option value="Chile">Chile / تشيلي</option>
+<option value="China">China / الصين</option>
+<option value="Colombia">Colombia / كولومبيا</option>
+<option value="Comoros">Comoros / جزر القمر</option>
+<option value="Congo">Congo / الكونغو</option>
+<option value="Costa Rica">Costa Rica / كوستاريكا</option>
+<option value="Croatia">Croatia / كرواتيا</option>
+<option value="Cuba">Cuba / كوبا</option>
+<option value="Cyprus">Cyprus / قبرص</option>
+<option value="Czech Republic">Czech Republic / التشيك</option>
+
+<option value="Denmark">Denmark / الدنمارك</option>
+<option value="Djibouti">Djibouti / جيبوتي</option>
+<option value="Dominica">Dominica / دومينيكا</option>
+<option value="Dominican Republic">Dominican Republic / جمهورية الدومينيكان</option>
+
+<option value="Ecuador">Ecuador / الإكوادور</option>
+<option value="Egypt">Egypt / مصر</option>
+<option value="El Salvador">El Salvador / السلفادور</option>
+<option value="Equatorial Guinea">Equatorial Guinea / غينيا الاستوائية</option>
+<option value="Eritrea">Eritrea / إريتريا</option>
+<option value="Estonia">Estonia / إستونيا</option>
+<option value="Eswatini">Eswatini / إسواتيني</option>
+<option value="Ethiopia">Ethiopia / إثيوبيا</option>
+
+<option value="Fiji">Fiji / فيجي</option>
+<option value="Finland">Finland / فنلندا</option>
+<option value="France">France / فرنسا</option>
+
+<option value="Gabon">Gabon / الغابون</option>
+<option value="Gambia">Gambia / غامبيا</option>
+<option value="Georgia">Georgia / جورجيا</option>
+<option value="Germany">Germany / ألمانيا</option>
+<option value="Ghana">Ghana / غانا</option>
+<option value="Greece">Greece / اليونان</option>
+<option value="Grenada">Grenada / غرينادا</option>
+<option value="Guatemala">Guatemala / غواتيمالا</option>
+<option value="Guinea">Guinea / غينيا</option>
+<option value="Guinea-Bissau">Guinea-Bissau / غينيا بيساو</option>
+<option value="Guyana">Guyana / غيانا</option>
+
+<option value="Haiti">Haiti / هايتي</option>
+<option value="Honduras">Honduras / هندوراس</option>
+<option value="Hungary">Hungary / المجر</option>
+
+<option value="Iceland">Iceland / آيسلندا</option>
+<option value="India">India / الهند</option>
+<option value="Indonesia">Indonesia / إندونيسيا</option>
+<option value="Iran">Iran / إيران</option>
+<option value="Iraq">Iraq / العراق</option>
+<option value="Ireland">Ireland / أيرلندا</option>
+<option value="Italy">Italy / إيطاليا</option>
+
+<option value="Jamaica">Jamaica / جامايكا</option>
+<option value="Japan">Japan / اليابان</option>
+<option value="Jordan">Jordan / الأردن</option>
+
+<option value="Kazakhstan">Kazakhstan / كازاخستان</option>
+<option value="Kenya">Kenya / كينيا</option>
+<option value="Kiribati">Kiribati / كيريباتي</option>
+<option value="Kuwait">Kuwait / الكويت</option>
+<option value="Kyrgyzstan">Kyrgyzstan / قيرغيزستان</option>
+
+<option value="Laos">Laos / لاوس</option>
+<option value="Latvia">Latvia / لاتفيا</option>
+<option value="Lebanon">Lebanon / لبنان</option>
+<option value="Lesotho">Lesotho / ليسوتو</option>
+<option value="Liberia">Liberia / ليبيريا</option>
+<option value="Libya">Libya / ليبيا</option>
+<option value="Liechtenstein">Liechtenstein / ليختنشتاين</option>
+<option value="Lithuania">Lithuania / ليتوانيا</option>
+<option value="Luxembourg">Luxembourg / لوكسمبورغ</option>
+
+<option value="Madagascar">Madagascar / مدغشقر</option>
+<option value="Malawi">Malawi / مالاوي</option>
+<option value="Malaysia">Malaysia / ماليزيا</option>
+<option value="Maldives">Maldives / المالديف</option>
+<option value="Mali">Mali / مالي</option>
+<option value="Malta">Malta / مالطا</option>
+<option value="Marshall Islands">Marshall Islands / جزر مارشال</option>
+<option value="Mauritania">Mauritania / موريتانيا</option>
+<option value="Mauritius">Mauritius / موريشيوس</option>
+<option value="Mexico">Mexico / المكسيك</option>
+<option value="Micronesia">Micronesia / ميكرونيزيا</option>
+<option value="Moldova">Moldova / مولدوفا</option>
+<option value="Monaco">Monaco / موناكو</option>
+<option value="Mongolia">Mongolia / منغوليا</option>
+<option value="Montenegro">Montenegro / الجبل الأسود</option>
+<option value="Morocco">Morocco / المغرب</option>
+<option value="Mozambique">Mozambique / موزمبيق</option>
+<option value="Myanmar">Myanmar / ميانمار</option>
+
+<option value="Namibia">Namibia / ناميبيا</option>
+<option value="Nauru">Nauru / ناورو</option>
+<option value="Nepal">Nepal / نيبال</option>
+<option value="Netherlands">Netherlands / هولندا</option>
+<option value="New Zealand">New Zealand / نيوزيلندا</option>
+<option value="Nicaragua">Nicaragua / نيكاراغوا</option>
+<option value="Niger">Niger / النيجر</option>
+<option value="Nigeria">Nigeria / نيجيريا</option>
+<option value="North Korea">North Korea / كوريا الشمالية</option>
+<option value="North Macedonia">North Macedonia / مقدونيا الشمالية</option>
+<option value="Norway">Norway / النرويج</option>
+
+<option value="Oman">Oman / عُمان</option>
+
+<option value="Pakistan">Pakistan / باكستان</option>
+<option value="Palau">Palau / بالاو</option>
+<option value="Panama">Panama / بنما</option>
+<option value="Papua New Guinea">Papua New Guinea / بابوا غينيا الجديدة</option>
+<option value="Paraguay">Paraguay / باراغواي</option>
+<option value="Peru">Peru / بيرو</option>
+<option value="Philippines">Philippines / الفلبين</option>
+<option value="Poland">Poland / بولندا</option>
+<option value="Portugal">Portugal / البرتغال</option>
+
+<option value="Qatar">Qatar / قطر</option>
+
+<option value="Romania">Romania / رومانيا</option>
+<option value="Russia">Russia / روسيا</option>
+<option value="Rwanda">Rwanda / رواندا</option>
+
+<option value="Saudi Arabia">Saudi Arabia / السعودية</option>
+
+<option value="Senegal">Senegal / السنغال</option>
+<option value="Serbia">Serbia / صربيا</option>
+<option value="Seychelles">Seychelles / سيشل</option>
+<option value="Sierra Leone">Sierra Leone / سيراليون</option>
+<option value="Singapore">Singapore / سنغافورة</option>
+<option value="Slovakia">Slovakia / سلوفاكيا</option>
+<option value="Slovenia">Slovenia / سلوفينيا</option>
+<option value="Solomon Islands">Solomon Islands / جزر سليمان</option>
+<option value="Somalia">Somalia / الصومال</option>
+<option value="South Africa">South Africa / جنوب أفريقيا</option>
+<option value="South Korea">South Korea / كوريا الجنوبية</option>
+<option value="South Sudan">South Sudan / جنوب السودان</option>
+<option value="Spain">Spain / إسبانيا</option>
+<option value="Sri Lanka">Sri Lanka / سريلانكا</option>
+<option value="Sudan">Sudan / السودان</option>
+<option value="Suriname">Suriname / سورينام</option>
+<option value="Sweden">Sweden / السويد</option>
+<option value="Switzerland">Switzerland / سويسرا</option>
+<option value="Syria">Syria / سوريا</option>
+
+<option value="Taiwan">Taiwan / تايوان</option>
+<option value="Tajikistan">Tajikistan / طاجيكستان</option>
+<option value="Tanzania">Tanzania / تنزانيا</option>
+<option value="Thailand">Thailand / تايلاند</option>
+<option value="Timor-Leste">Timor-Leste / تيمور الشرقية</option>
+<option value="Togo">Togo / توغو</option>
+<option value="Tonga">Tonga / تونغا</option>
+<option value="Trinidad and Tobago">Trinidad and Tobago / ترينيداد وتوباغو</option>
+<option value="Tunisia">Tunisia / تونس</option>
+<option value="Turkey">Turkey / تركيا</option>
+<option value="Turkmenistan">Turkmenistan / تركمانستان</option>
+<option value="Tuvalu">Tuvalu / توفالو</option>
+
+<option value="Uganda">Uganda / أوغندا</option>
+<option value="Ukraine">Ukraine / أوكرانيا</option>
+<option value="United Arab Emirates">United Arab Emirates / الإمارات</option>
+<option value="United Kingdom">United Kingdom / المملكة المتحدة</option>
+<option value="United States">United States / الولايات المتحدة</option>
+<option value="Uruguay">Uruguay / أوروغواي</option>
+<option value="Uzbekistan">Uzbekistan / أوزبكستان</option>
+
+<option value="Vanuatu">Vanuatu / فانواتو</option>
+<option value="Vatican City">Vatican City / الفاتيكان</option>
+<option value="Venezuela">Venezuela / فنزويلا</option>
+<option value="Vietnam">Vietnam / فيتنام</option>
+
+<option value="Yemen">Yemen / اليمن</option>
+
+<option value="Zambia">Zambia / زامبيا</option>
+<option value="Zimbabwe">Zimbabwe / زيمبابوي</option>
+
+<option value="Other">Other / أخرى</option>
+
+          </select>
+                </div>
+                <div>
+                  <label>رقم الهاتف المحمول</label>
+                  <input type="text" id="edit_mobile_number" name="absher_number" maxlength="10" pattern="05[0-9]{8}" placeholder="05XXXXXXXX">
+
+                </div>
+                <div>
+                  <label>رقم الكفيل السابق</label>
+                  <select id="edit_previous_sponsor_number" name="previous_sponsor_number" >
+                    <option value="">-- Select --</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                  </select>
+                </div>
+                <div>
+                  <label>رخصة قيادة سعودية</label>
+                  <select id="edit_saudi_driving_license" name="saudi_driving_license">
+                    <option value="false">لا</option>
+                    <option value="true">نعم</option>
+                  </select>
+                </div>
+
+                <!-- Business / Platform Assignment -->
+                <div>
+                  <label>تعيين الأعمال / المنصات</label>
+                  <div id="businessContainer"></div>
+                  <button type="button" id="addBusinessBtn" class="btn secondary" style="margin-top:8px;">+ إضافة نشاط تجاري</button>
+                </div>
+
+                <!-- Issued / Device -->
+                <div>
+                  <label>رقم الجوال الصادر</label>
+                  <input type="text" id="edit_issued_mobile_number" name="issued_mobile_number">
+                </div>
+                <div>
+                  <label>معرّف الجهاز الصادر</label>
+                  <input type="text" id="edit_issued_device_id" name="issued_device_id">
+                </div>
+                <div>
+                  <label>تم إصدار الهاتف المحمول</label>
+                  <select id="edit_mobile_issued" name="mobile_issued">
+                    <option value="false">لا</option>
+                    <option value="true">نعم</option>
+                  </select>
+                </div>
+
+                <!-- Car / Assignment -->
+                <div>
+                  <label>تفاصيل السيارة</label>
+                  <input type="text" id="edit_car_details" name="car_details">
+                </div>
+                <div>
+                  <label>تاريخ التكليف</label>
+                  <input type="date" id="edit_assignment_date" name="assignment_date">
+                </div>
+
+                <!-- TAMM / Transfer Fee -->
+                <div>
+                  <label>معتمد من تم</label>
+                  <select id="edit_tamm_authorized" name="tamm_authorized">
+                    <option value="false">لا</option>
+                    <option value="true">نعم</option>
+                  </select>
+                </div>
+                <div>
+                  <label>لقطة شاشة تفويض تم</label>
+                  <div id="edit_tamm_ss_link"></div>
+                  <input type="file" id="edit_tamm_authorization_ss" name="tamm_authorization_ss" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+                <div>
+                  <label>تم دفع رسوم التحويل</label>
+                  <select id="edit_transfer_fee_paid" name="transfer_fee_paid">
+                    <option value="false">لا</option>
+                    <option value="true">نعم</option>
+                  </select>
+                </div>
+                <div>
+                  <label>مبلغ رسوم التحويل</label>
+                  <select id="edit_transfer_fee_amount" name="transfer_fee_amount">
+                    <option value="2000">٢٠٠٠ ريال سعودي</option>
+                    <option value="4000">٤٠٠٠ ريال سعودي</option>
+                    <option value="6000">٦٠٠٠ ريال سعودي</option>
+                  </select>
+                </div>
+                <div>
+                  <label>رسوم التحويل مدفوعة في</label>
+                  <input type="datetime-local" id="edit_transfer_fee_paid_at" name="transfer_fee_paid_at">
+                </div>
+                <div>
+                  <label>إيصال رسوم التحويل</label>
+                  <div id="edit_transfer_fee_receipt_link"></div>
+                  <input type="file" id="edit_transfer_fee_receipt" name="transfer_fee_receipt" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+
+                <!-- Other Uploaded Files -->
+                <div>
+                  <label>إثبات نقل الكفالة</label>
+                  <div id="edit_sponsorship_proof_link"></div>
+                  <input type="file" name="sponsorship_transfer_proof" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+                <div>
+                  <label>ملف عقد الشركة</label>
+                  <div id="edit_company_contract_link"></div>
+                  <input type="file" name="company_contract_file" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+                <div>
+                  <label>ملف سند إذني</label>
+                  <div id="edit_promissory_link"></div>
+                  <input type="file" name="promissory_note_file" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+                <div>
+                  <label>ملف عقد قيـوة</label>
+                  <div id="edit_qiwa_contract_link"></div>
+                  <input type="file" name="qiwa_contract_file" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+
+                <div>
+                  <label>حالة عقد قيـوى</label>
+                  <select id="edit_qiwa_contract_status" name="qiwa_contract_status">
+                    <option value="Pending">قيد الانتظار</option>
+                    <option value="Approved">موافق</option>
+                    <option value="Not Approved">غير معتمد</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label>مرحلة التهيئة</label>
+                  <select id="edit_onboarding_stage" name="onboarding_stage">
+                    <option value="Ops Manager">مدير العمليات</option>
+                    <option value="HR">الموارد البشرية</option>
+                    <option value="Ops Supervisor">مشرف العمليات</option>
+                    <option value="Fleet Manager">مدير الأسطول</option>
+                    <option value="Rejected">مرفوض</option>
+                    <option value="Finance">المالية</option>
+                    <option value="HR Final">الموارد البشرية النهائية</option>
+                    <option value="Completed">مكتمل</option>
+                  </select>
+                </div>
+
+              </div>
+
+              <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+                <button type="button" class="btn" onclick="closeModal('editModal')">إلغاء</button>
+                <button type="submit" class="btn edit">حفظ التغييرات</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <script id="allBusinessesData" type="application/json">
+          {{ all_businesses | default([]) | tojson | safe }}
+        </script>
+
+        <script>
+        // Parse embedded JSON so static analysis remains valid pre-templating
+        const allBusinesses = JSON.parse(document.getElementById('allBusinessesData')?.textContent || '[]');
+
+        function addBusinessRow(selectedBusinessId = '', selectedId = '', selectedIdValue = '') {
+          const container = document.getElementById('businessContainer');
+
+          const row = document.createElement('div');
+          row.style.display = 'flex';
+          row.style.gap = '8px';
+          row.style.marginTop = '8px';
+
+          // Business select
+          const selBusiness = document.createElement('select');
+          selBusiness.style.flex = '1';
+          selBusiness.style.padding = '8px';
+          selBusiness.style.borderRadius = '6px';
+          selBusiness.style.border = '1px solid #ccc';
+          selBusiness.required = true;
+
+          const defaultBusinessOpt = document.createElement('option');
+          defaultBusinessOpt.value = '';
+          defaultBusinessOpt.text = '-- Select Business --';
+          selBusiness.appendChild(defaultBusinessOpt);
+
+          allBusinesses.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.id;
+            opt.text = b.name;
+            if (String(b.id) === String(selectedBusinessId)) opt.selected = true;
+            selBusiness.appendChild(opt);
+          });
+
+          // ID select
+          const selId = document.createElement('select');
+          selId.name = 'platform_id[]';
+          selId.required = true;
+          selId.style.flex = '1';
+          selId.style.padding = '8px';
+          selId.style.borderRadius = '6px';
+          selId.style.border = '1px solid #ccc';
+
+          const defaultIdOpt = document.createElement('option');
+          defaultIdOpt.value = '';
+          defaultIdOpt.text = '-- Select ID --';
+          selId.appendChild(defaultIdOpt);
+
+          function populateIds(businessId) {
+            selId.innerHTML = '';
+            selId.appendChild(defaultIdOpt.cloneNode(true));
+            const business = allBusinesses.find(b => String(b.id) === String(businessId));
+            if (business) {
+              business.available_ids.forEach(idObj => {
+                const opt = document.createElement('option');
+                opt.value = idObj.id;
+                opt.text = idObj.value;
+                if (String(idObj.id) === String(selectedId)) opt.selected = true;
+                selId.appendChild(opt);
+              });
+            }
+
+            if (selectedId && !Array.from(selId.options).some(o => String(o.value) === String(selectedId))) {
+              const fallbackOpt = document.createElement('option');
+              fallbackOpt.value = selectedId;
+              fallbackOpt.text = selectedIdValue || `Assigned ID (${selectedId})`;
+              fallbackOpt.selected = true;
+              selId.appendChild(fallbackOpt);
+            }
+          }
+
+          if (selectedBusinessId) populateIds(selectedBusinessId);
+          selBusiness.addEventListener('change', e => populateIds(e.target.value));
+
+          // Remove button
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'btn secondary';
+          delBtn.innerText = 'Remove';
+          delBtn.style.width = '20%';
+          delBtn.addEventListener('click', () => row.remove());
+
+          row.appendChild(selBusiness);
+          row.appendChild(selId);
+          row.appendChild(delBtn);
+          container.appendChild(row);
+        }
+
+        const adminBase = "{{ url_for('admin.dashboard') }}";
+        const csrfTokenDefault = "{{ csrf_token() }}";
+        const adminBaseUrl = adminBase.endsWith('/') ? adminBase : `${adminBase}/`;
+
+        // Open modal and populate fields
+        function openEditModal(e, btn) {
+          e.stopPropagation();
+          try {
+            const card = btn.closest('.driver-card');
+            const d = JSON.parse(card.dataset.driver);
+            fetch(`${adminBaseUrl}driver/${d.id}/json`)
+              .then(res => {
+                if (!res.ok) {
+                  throw new Error(`Request failed: ${res.status}`);
+                }
+                return res.json();
+              })
+              .then(driverData => {
+                populateEditForm(driverData);
+                document.getElementById('editModal').classList.add('show');
+              })
+              .catch(err => {
+                console.error('openEditModal fetch', err);
+                showToast('Unable to open edit form. Please refresh and try again.', 'error');
+              });
+          } catch(err) {
+            console.error('openEditModal', err);
+            showToast('Unable to open edit form — check console.', 'error');
+          }
+        }
+
+        function populateEditForm(d) {
+          document.getElementById('edit_driver_id').value = d.id || '';
+          document.getElementById('edit_name').value = d.name || '';
+          document.getElementById('edit_iqama_number').value = d.iqaama_number || '';
+          if(d.iqaama_expiry) document.getElementById('edit_iqama_expiry').value = d.iqaama_expiry;
+          document.getElementById('edit_nationality').value = d.nationality || '';
+          document.getElementById('edit_mobile_number').value = d.absher_number || '';
+          document.getElementById('edit_previous_sponsor_number').value = d.previous_sponsor_number || '';
+          document.getElementById('edit_saudi_driving_license').value = d.saudi_driving_license ? 'true' : 'false';
+
+          // Clear & add business rows
+          const container = document.getElementById('businessContainer');
+          container.innerHTML = '';
+          if(d.assigned_businesses && d.assigned_businesses.length) {
+            d.assigned_businesses.forEach(bid => addBusinessRow(bid.business_id, bid.platform_id, bid.platform_value));
+          } else {
+            addBusinessRow();
+          }
+
+          // Prefill other fields
+          document.getElementById('edit_issued_mobile_number').value = d.issued_mobile_number || '';
+          document.getElementById('edit_issued_device_id').value = d.issued_device_id || '';
+          document.getElementById('edit_mobile_issued').value = d.mobile_issued ? 'true' : 'false';
+          document.getElementById('edit_car_details').value = d.car_details || '';
+          if(d.assignment_date) document.getElementById('edit_assignment_date').value = d.assignment_date;
+          document.getElementById('edit_tamm_authorized').value = d.tamm_authorized ? 'true' : 'false';
+          document.getElementById('edit_transfer_fee_paid').value = d.transfer_fee_paid ? 'true' : 'false';
+          document.getElementById('edit_transfer_fee_amount').value = d.transfer_fee_amount || '';
+          if(d.transfer_fee_paid_at) document.getElementById('edit_transfer_fee_paid_at').value = d.transfer_fee_paid_at;
+          document.getElementById('edit_qiwa_contract_status').value = d.qiwa_contract_status || '';
+          const stage = (d.onboarding_stage === 'Fleet') ? 'Fleet Manager' : (d.onboarding_stage || '');
+          document.getElementById('edit_onboarding_stage').value = stage;
+
+          // Show current files as links
+          function showFileLink(divId, url) {
+            const div = document.getElementById(divId);
+            div.innerHTML = url ? `<a href="${url}" target="_blank">View current file</a>` : '';
+          }
+          showFileLink('edit_tamm_ss_link', d.tamm_authorization_ss_url);
+          showFileLink('edit_transfer_fee_receipt_link', d.transfer_fee_receipt_url);
+          showFileLink('edit_sponsorship_proof_link', d.sponsorship_transfer_proof_url);
+          showFileLink('edit_company_contract_link', d.company_contract_file_url);
+          showFileLink('edit_promissory_link', d.promissory_note_file_url);
+          showFileLink('edit_qiwa_contract_link', d.qiwa_contract_file_url);
+
+          // Set form action
+          document.getElementById('editForm').action = `${adminBaseUrl}driver/${d.id}/update`;
+        }
+        </script>
+
+
+
+        <!-- ========== ADD USER MODAL ========== -->
+        <div id="addUserModal" class="modal" aria-hidden="true">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>Add User</h2>
+              <button class="close" onclick="closeModal('addUserModal')">&times;</button>
+            </div>
+
+            <form id="addUserForm" method="POST" action="{{ url_for('admin.add_user') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="grid-2">
+                <div>
+                  <label>الاسم الكامل</label>
+                  <input type="text" name="name" required>
+                </div>
+                <div>
+                  <label>اسم المستخدم</label>
+                  <input type="text" name="username" required>
+                </div>
+
+                <div>
+                  <label>البريد الإلكتروني</label>
+                  <input type="email" name="email" required>
+                </div>
+
+                <div>
+                  <label>كلمة المرور</label>
+                  <input type="password" name="password" required>
+                </div>
+
+                <div>
+                  <label>التسمية</label>
+                  <input type="text" name="designation">
+                </div>
+
+                <div>
+                  <label>مدينة الفرع</label>
+                  <select name="branch_city" required>
+<option value="">-- Select City -- / اختر المدينة --</option>
+
+<option value="Riyadh">Riyadh / الرياض</option>
+<option value="Jeddah">Jeddah / جدة</option>
+<option value="Dammam">Dammam / الدمام</option>
+<option value="Makkah">Makkah / مكة</option>
+<option value="Madinah">Madinah / المدينة المنورة</option>
+<option value="Khobar">Al Khobar / الخبر</option>
+<option value="Dhahran">Dhahran / الظهران</option>
+<option value="Qassim">Qassim / القصيم</option>
+<option value="Buraidah">Buraidah / بريدة</option>
+<option value="Abha">Abha / أبها</option>
+<option value="Khamis Mushait">Khamis Mushait / خميس مشيط</option>
+<option value="Hail">Hail / حائل</option>
+<option value="Tabuk">Tabuk / تبوك</option>
+<option value="Jazan">Jazan / جازان</option>
+<option value="Najran">Najran / نجران</option>
+<option value="Al Baha">Al Baha / الباحة</option>
+<option value="Sakaka">Sakaka / سكاكا</option>
+<option value="Arar">Arar / عرعر</option>
+<option value="Yanbu">Yanbu / ينبع</option>
+<option value="Rabigh">Rabigh / رابغ</option>
+<option value="Taif">Taif / الطائف</option>
+<option value="Al Ahsa">Al Ahsa / الأحساء</option>
+<option value="Hafar Al Batin">Hafar Al Batin / حفر الباطن</option>
+<option value="Jubail">Jubail / الجبيل</option>
+<option value="Rafha">Rafha / رفحاء</option>
+<option value="Turaif">Turaif / طريف</option>
+<option value="Al Wajh">Al Wajh / الوجه</option>
+<option value="Dawadmi">Ad Dawadmi / الدوادمي</option>
+<option value="Mahd">Mahd / مهد الذهب</option>
+<option value="Qurayyat">Qurayyat / القريات</option>
+<option value="Baljurashi">Baljurashi / بلجرشي</option>
+
+<option value="Other">Other / أخرى</option>
+                </div>
+
+                <div style="grid-column:1/-1">
+                  <label>دور</label>
+                  <select name="role" required>
+                    <option value="">-- اختر الدور --</option>
+                    <option value="SuperAdmin">المشرف الأعلى</option>
+                    <option value="HR">الموارد البشرية</option>
+                    <option value="OpsManager">مدير العمليات</option>
+                    <option value="OpsSupervisor">مدير عمليات المنصة</option>
+                    <option value="FleetManager">مدير الأسطول</option>
+                    <option value="FinanceManager">مدير المالية</option>
+                    <option value="OpsCoordinator">منسق العمليات</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+                <button type="button" class="btn" onclick="closeModal('addUserModal')">إلغاء</button>
+                <button type="submit" class="btn add">إنشاء مستخدم</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- ========== EDIT USER MODAL (AJAX) ========== -->
+        <div id="editUserModal" class="modal" aria-hidden="true">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>تعديل المستخدم</h2>
+              <button class="close" onclick="closeModal('editUserModal')">&times;</button>
+            </div>
+
+            <form id="editUserForm" method="POST">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" id="edit_user_id" name="user_id">
+              <div class="grid-2">
+                <div>
+                  <label>اسم المستخدم</label>
+                  <input type="text" id="edit_user_username" name="username" required>
+                </div>
+                <div>
+                  <label>الاسم الكامل</label>
+                  <input type="text" id="edit_user_name" name="name" required>
+                </div>
+
+                <div style="grid-column:1/-1">
+                  <label>دور</label>
+                  <select name="role" required>
+                    <option value="">-- اختر الدور --</option>
+                    <option value="SuperAdmin">المشرف الأعلى</option>
+                    <option value="HR">الموارد البشرية</option>
+                    <option value="OpsManager">مدير العمليات</option>
+                    <option value="OpsSupervisor">مدير عمليات المنصة</option>
+                    <option value="FleetManager">مدير الأسطول</option>
+                    <option value="FinanceManager">مدير المالية</option>
+                    <option value="OpsCoordinator">منسق العمليات</option>
+                  </select>
+
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+                <button type="button" class="btn" onclick="closeModal('editUserModal')">إلغاء</button>
+                <button type="submit" class="btn edit">حفظ التغييرات</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- ========== CHANGE PASSWORD MODAL ========== -->
+        <div id="changePasswordModal" class="modal" aria-hidden="true">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>غيّر كلمة المرور الخاصة بك</h2>
+              <button class="close" onclick="closeModal('changePasswordModal')">&times;</button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.change_password') }}">
+              <div>
+                <label>كلمة المرور الحالية</label>
+                <input type="password" name="current_password" required>
+              </div>
+              <div>
+                <label>كلمة مرور جديدة</label>
+                <input type="password" name="new_password" required>
+              </div>
+              <div>
+                <label>تأكيد كلمة المرور الجديدة</label>
+                <input type="password" name="confirm_password" required>
+              </div>
+              <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+                <button type="button" class="btn" onclick="closeModal('changePasswordModal')">إلغاء</button>
+                <button type="submit" class="btn add">تحديث كلمة المرور</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Toast container -->
+        <div class="toast-container" id="toastContainer"></div>
+
+        <!-- ================= SCRIPTS ================= -->
+        <script>
+          /* ----------------- Basic UI helpers ----------------- */
+      function switchDriverTab(tab){
+        const tabs = ['pending','onboarded','pendingOffboarding','fullyOffboarded'];
+        const tabIds = ['pendingTab','onboardedTab','pendingOffboardingTab','fullyOffboardedTab'];
+        const btnIds = ['tabPendingBtn','tabOnboardedBtn','tabPendingOffboardingBtn','tabFullyOffboardedBtn'];
+
+        tabs.forEach((t,i)=>{
+          document.getElementById(tabIds[i]).style.display = (tab === t ? 'block' : 'none');
+          document.getElementById(btnIds[i]).classList.toggle('active', tab === t);
+        });
+      }
+
+          function showSection(s){
+            // small placeholder for future multi-section switching (drivers/users/reports)
+            if(s === 'users') {
+              window.scrollTo({top: document.querySelector('.users-list').offsetTop - 120, behavior:'smooth'});
+              // open users panel by focusing search
+              document.getElementById('userSearch')?.focus();
+            } else if (s === 'reports') {
+              // jump to top or show a reports section if you add one
+              window.scrollTo({top:0, behavior:'smooth'});
+            } else {
+              window.scrollTo({top:0, behavior:'smooth'});
+            }
+          }
+
+
+          function openAddUserModal(){ document.getElementById('addUserModal').classList.add('show'); }
+          function openChangePasswordModal(){ document.getElementById('changePasswordModal').classList.add('show'); }
+
+          function closeModal(id){
+            const el = document.getElementById(id);
+            if(el) el.classList.remove('show');
+          }
+
+          // close on click outside content
+          window.addEventListener('click', function(e){
+            if(e.target.classList && e.target.classList.contains('modal')){
+              e.target.classList.remove('show');
+            }
+          });
+
+          // close on escape
+          window.addEventListener('keydown', function(e){
+            if(e.key === 'Escape'){
+              document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+            }
+          });
+
+          /* ----------------- USERS: edit modal population and submit ----------------- */
+          function openUserEditModalFromRow(e, btn){
+            e.stopPropagation();
+            const row = btn.closest('.user-row');
+            const u = JSON.parse(row.dataset.user);
+            openUserEditModal(u);
+          }
+          function openUserEditModal(u){
+            document.getElementById('edit_user_id').value = u.id || '';
+            document.getElementById('edit_user_username').value = u.username || '';
+            document.getElementById('edit_user_name').value = u.name || '';
+            document.getElementById('edit_user_role').value = u.role || '';
+            // action endpoint
+            document.getElementById('editUserForm').action = `/dashboard/edit_user/${u.id}`;
+            document.getElementById('editUserModal').classList.add('show');
+          }
+
+          // Edit user AJAX
+          document.getElementById('editUserForm').addEventListener('submit', async function(ev){
+            ev.preventDefault();
+            const form = ev.target;
+            const fd = new FormData(form);
+            const csrfToken = fd.get('csrf_token') || csrfTokenDefault;
+            try {
+              const res = await fetch(form.action, {
+                method:'POST',
+                body: fd,
+                credentials: "same-origin",
+                headers: {
+                  "X-Requested-With": "XMLHttpRequest",
+                  "X-CSRFToken": csrfToken
+                }
+              });
+              if(res.ok){
+                showToast('✅ User updated');
+                setTimeout(()=>location.reload(),800);
+              } else {
+                showToast('❌فشل في تحديث المستخدم', 'error');
+              }
+            } catch(e){
+              console.error(e);
+              showToast('⚠️ حدث خطأ في الشبكة أثناء تحديث المستخدم', 'error');
+            }
+          });
+
+          // Add user uses regular POST (server redirects). You can convert to AJAX if you want.
+
+          /* ----------------- EDIT DRIVER submit (AJAX) ----------------- */
+          document.getElementById('editForm').addEventListener('submit', async function(ev){
+            ev.preventDefault();
+            const form = ev.target;
+            if(!form.action) { showToast('لا يوجد نقطة نهاية للتحديث!', 'error'); return; }
+            const fd = new FormData(form);
+            const csrfToken = fd.get('csrf_token') || csrfTokenDefault;
+            try{
+              const res = await fetch(form.action, {
+                method:'POST',
+                body: fd,
+                credentials: "same-origin",
+                headers: {
+                  "X-Requested-With": "XMLHttpRequest",
+                  "X-CSRFToken": csrfToken
+                }
+              });
+              if(res.ok){
+                showToast('✅ تم تحديث البرنامج التعليمي');
+                setTimeout(()=>location.reload(),900);
+              } else {
+                const txt = await res.text();
+                showToast('❌ فشل في حفظ برنامج التشغيل: '+ (txt || res.status), 'error');
+              }
+            }catch(err){
+              console.error(err);
+              showToast('⚠️ حدث خطأ في الشبكة أثناء تحديث برنامج التشغيل', 'error');
+            }
+          });
+
+          /* ----------------- AJAX DELETE for drivers & users (progressive) ----------------- */
+          // Drivers delete forms
+          document.querySelectorAll("form[action*='delete_driver']").forEach(form => {
+            form.addEventListener("submit", async e => {
+              e.preventDefault();
+              if(!confirm("هل أنت متأكد أنك تريد حذف هذا السائق؟")) return;
+              try {
+                const formData = new FormData(form);
+                const csrfToken = formData.get('csrf_token') || csrfTokenDefault;
+                const res = await fetch(form.action, {
+                  method: "POST",
+                  body: formData,
+                  credentials: "same-origin",
+                  headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": csrfToken
+                  }
+                });
+                if(res.ok){
+                  const card = form.closest('.driver-card');
+                  if(card) card.remove();
+                  showToast('🗑 تم حذف البرنامج التعليمي');
+                } else {
+                  showToast('❌ تعذر حذف البرنامج التعريفي', 'error');
+                }
+              } catch(err){
+                console.error(err);
+                showToast('⚠️ حدث خطأ في الشبكة أثناء حذف برنامج التشغيل', 'error');
+              }
+            });
+          });
+
+          // Users delete forms
+          document.querySelectorAll("form[action*='delete_user']").forEach(form => {
+            form.addEventListener("submit", async e => {
+              e.preventDefault();
+              if(!confirm("Aهل أنت متأكد أنك تريد حذف هذا المستخدم؟")) return;
+              try {
+                const formData = new FormData(form);
+                const csrfToken = formData.get('csrf_token') || csrfTokenDefault;
+                const res = await fetch(form.action, {
+                  method: "POST",
+                  body: formData,
+                  credentials: "same-origin",
+                  headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": csrfToken
+                  }
+                });
+                if(res.ok){
+                  const row = form.closest('.user-row');
+                  if(row) row.remove();
+                  showToast('🗑 تم حذف المستخدم');
+                } else {
+                  showToast('❌ تعذر حذف المستخدم', 'error');
+                }
+              } catch(err){
+                console.error(err);
+                showToast('⚠️ حدث خطأ في الشبكة أثناء حذف المستخدم', 'error');
+              }
+            });
+          });
+
+          /* ----------------- search / filter helpers ----------------- */
+          let driverSearchTimer = null;
+          function globalSearchFilter(){
+            clearTimeout(driverSearchTimer);
+            driverSearchTimer = setTimeout(() => {
+              const q = (document.getElementById('globalSearch').value || '').trim();
+              const params = new URLSearchParams(window.location.search);
+              if (q) params.set('q', q);
+              else params.delete('q');
+              params.set('page', '1');
+              params.set('per_page', '{{ per_page }}');
+              params.set('lang', 'ar');
+              window.location.href = `${window.location.pathname}?${params.toString()}`;
+            }, 300);
+          }
+
+          function filterUsers(){
+            const q = (document.getElementById('userSearch').value || '').toLowerCase().trim();
+            document.querySelectorAll('.user-row').forEach(row=>{
+              const u = JSON.parse(row.dataset.user || '{}');
+              const hay = `${u.name||''} ${u.username||''} ${u.email||''}`.toLowerCase();
+              row.style.display = hay.includes(q) ? '' : 'none';
+            });
+          }
+
+          /* ----------------- small utilities ----------------- */
+          function escapeHTML(s){
+            if(s === undefined || s === null) return '';
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+              .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+          }
+
+          // Open view by id (optional programmatic)
+          function openViewById(id){
+            const card = Array.from(document.querySelectorAll('.driver-card')).find(c => {
+              try{ return JSON.parse(c.dataset.driver).id == id; }catch(e){return false;}
+            });
+            if(card) openViewModal({stopPropagation:()=>{}}, card.querySelector('.view') || card);
+          }
+
+          /* ----------------- toast helper & flash messages ----------------- */
+          function showToast(message, type="success") {
+            const container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.className = "toast " + (type === "error" ? "error" : (type === "info" ? "info": ""));
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add("show"), 50);
+            setTimeout(() => {
+              toast.classList.remove("show");
+              setTimeout(() => toast.remove(), 400);
+            }, 3500);
+          }
+
+          // show flashed messages from Flask (if any)
+          (function () {
+            // We wrap everything in quotes first, then JSON.parse it
+            let flashed = [];
+            try {
+              flashed = JSON.parse('{{ get_flashed_messages(with_categories=true) | default([]) | tojson | safe }}');
+            } catch (err) {
+              console.warn("Could not parse flashed messages:", err);
+              flashed = [];
+            }
+
+            if (Array.isArray(flashed) && flashed.length) {
+              flashed.forEach(function (item) {
+                const category = Array.isArray(item) ? item[0] : "info";
+                const message = Array.isArray(item) ? item[1] : String(item);
+                const type =
+                  category === "success"
+                    ? "success"
+                    : category === "danger" || category === "error"
+                    ? "error"
+                    : "info";
+
+                if (typeof showToast === "function") {
+                  showToast(message, type);
+                } else {
+                  console.log("[FLASH]", type, message);
+                }
+              });
+            }
+          })();
+        </script>
+    </div>
+  </div>
+{% include 'includes/csrf_auto.html' %}
+</body>
+</html>
+  

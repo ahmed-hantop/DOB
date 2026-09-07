@@ -10,8 +10,8 @@ from datetime import datetime
 from io import BytesIO
 import os
 from utils.email_utils import send_password_change_email
+from utils.passwords import verify_password_hash
 from werkzeug.security import generate_password_hash
-from utils.passwords import verify_password
 from werkzeug.utils import secure_filename
 from services.file_storage import save_upload, validate_upload
 from services.admin_service import (
@@ -633,7 +633,7 @@ def dashboard():
 @admin_bp.route("/users", methods=["GET"])
 @login_required
 def users():
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         flash("Access denied. SuperAdmin role required.", "danger")
         return redirect(url_for("auth.login"))
 
@@ -647,6 +647,7 @@ def users():
             "branch_city": u.branch_city,
             "email": u.email,
             "role": u.role,
+            "locked_until": u.locked_until.isoformat() if u.locked_until else None,
         }
         for u in all_users
     ]
@@ -666,7 +667,7 @@ def users():
 @admin_bp.route("/driver/<int:driver_id>/json")
 @login_required
 def driver_json(driver_id):
-    if current_user.role not in ["Admin", "SuperAdmin"]:
+    if not user_has_role(current_user, "Admin", "SuperAdmin"):
         return {"error": "Access denied"}, 403
 
     driver = Driver.query.get_or_404(driver_id)
@@ -728,7 +729,7 @@ def driver_json(driver_id):
 @admin_bp.route("/driver/add", methods=["POST"])
 @login_required
 def add_driver():
-    if current_user.role not in ["Admin", "SuperAdmin"]:
+    if not user_has_role(current_user, "Admin", "SuperAdmin"):
         flash("Access denied", "danger")
         return redirect(url_for("auth.login"))
 
@@ -800,7 +801,7 @@ def add_driver():
 @admin_bp.route("/driver/<int:driver_id>/update", methods=["POST"])
 @login_required
 def update_driver(driver_id):
-    if current_user.role not in ["Admin", "SuperAdmin"]:
+    if not user_has_role(current_user, "Admin", "SuperAdmin"):
         flash("Access denied", "danger")
         return redirect(url_for("auth.login"))
 
@@ -831,7 +832,7 @@ def update_driver(driver_id):
 @admin_bp.route("/driver/<int:driver_id>/reactivate", methods=["POST"])
 @login_required
 def reactivate_driver(driver_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         flash("Access Denied", "danger")
         return redirect(url_for("admin.dashboard"))
 
@@ -946,7 +947,7 @@ def delete_offboarding_record(offboarding_id):
 @admin_bp.route("/add_user", methods=["POST"])
 @login_required
 def add_user():
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Access Denied", 403
 
     form = AddUserForm()
@@ -1072,7 +1073,7 @@ def edit_user(user_id):
 
     user = User.query.get_or_404(user_id)
     try:
-        if current_user.role == "SuperAdmin":
+        if user_has_role(current_user, "SuperAdmin"):
             update_user_from_form(
                 user,
                 username=form.username.data or user.username,
@@ -1097,12 +1098,51 @@ def edit_user(user_id):
     return redirect(url_for("admin.users"))
 
 # -------------------------
+# Unlock / reset another user's access (SuperAdmin only)
+# -------------------------
+@admin_bp.route("/users/<int:user_id>/unlock", methods=["POST"])
+@login_required
+def unlock_user(user_id):
+    if not user_has_role(current_user, "SuperAdmin"):
+        return "Access Denied", 403
+    form = CSRFOnlyForm()
+    if not form.validate_on_submit():
+        flash("Invalid request.", "danger")
+        return redirect(url_for("admin.users"))
+    user = User.query.get_or_404(user_id)
+    user.failed_logins = 0
+    user.locked_until = None
+    db.session.commit()
+    flash(f"Login lock cleared for {user.username}.", "success")
+    return redirect(url_for("admin.users"))
+
+
+@admin_bp.route("/users/<int:user_id>/reset-password", methods=["POST"])
+@login_required
+def reset_user_password(user_id):
+    if not user_has_role(current_user, "SuperAdmin"):
+        return "Access Denied", 403
+    form = CSRFOnlyForm()
+    password = (request.form.get("new_password") or "").strip()
+    if not form.validate_on_submit() or len(password) < 6:
+        flash("Enter a password of at least 6 characters.", "danger")
+        return redirect(url_for("admin.users"))
+    user = User.query.get_or_404(user_id)
+    change_user_password(user, password)
+    user.failed_logins = 0
+    user.locked_until = None
+    db.session.commit()
+    flash(f"Password reset and login lock cleared for {user.username}.", "success")
+    return redirect(url_for("admin.users"))
+
+
+# -------------------------
 # Delete User
 # -------------------------
 @admin_bp.route("/delete_user/<int:user_id>", methods=["POST"])
 @login_required
 def delete_user(user_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         flash("Access Denied", "danger")
         return redirect(url_for("admin.users"))
 
@@ -1128,7 +1168,7 @@ def delete_user(user_id):
 @login_required
 def change_password():
     """Allow SuperAdmin to change their password securely and send email notification."""
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         flash("Access Denied", "danger")
         return redirect(url_for("admin.dashboard"))
 
@@ -1140,7 +1180,7 @@ def change_password():
     current_password = form.current_password.data
     new_password = form.new_password.data
 
-    if not verify_password(current_user.password, current_password):
+    if not verify_password_hash(current_user.password, current_password):
         flash("Current password is incorrect.", "danger")
         return redirect(url_for("admin.dashboard"))
 
@@ -1172,7 +1212,7 @@ def change_password():
 @admin_bp.route("/workflow-config", methods=["GET"])
 @login_required
 def workflow_config():
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     driver_types = DriverType.query.filter(DriverType.deleted_at.is_(None)).order_by(DriverType.name).all()
@@ -1198,7 +1238,7 @@ def workflow_config():
 @admin_bp.route("/contract-templates", methods=["GET"])
 @login_required
 def contract_templates():
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     edit_template_id = request.args.get("edit_template_id", type=int)
@@ -1237,7 +1277,7 @@ def contract_templates():
 @admin_bp.route("/workflow-config/stage-template/add", methods=["POST"])
 @login_required
 def add_stage_template():
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = OnboardingStageTemplateForm()
@@ -1272,7 +1312,7 @@ def add_stage_template():
 @admin_bp.route("/workflow-config/stage-template/<int:row_id>/delete", methods=["POST"])
 @login_required
 def delete_stage_template(row_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = CSRFOnlyForm()
@@ -1290,7 +1330,7 @@ def delete_stage_template(row_id):
 @admin_bp.route("/workflow-config/driver-type-settings/save", methods=["POST"])
 @login_required
 def save_driver_type_settings():
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = DriverTypeSettingsForm()
@@ -1318,7 +1358,7 @@ def save_driver_type_settings():
 @admin_bp.route("/workflow-config/contract-template/add", methods=["POST"])
 @login_required
 def add_contract_template():
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = ContractTemplateForm()
@@ -1338,7 +1378,7 @@ def add_contract_template():
 @admin_bp.route("/workflow-config/contract-template/<int:template_id>/update", methods=["POST"])
 @login_required
 def update_contract_template(template_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = ContractTemplateForm()
@@ -1358,7 +1398,7 @@ def update_contract_template(template_id):
 @admin_bp.route("/workflow-config/contract-template/<int:template_id>/preview", methods=["GET"])
 @login_required
 def preview_contract_template(template_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     template = ContractTemplate.query.get_or_404(template_id)
@@ -1374,7 +1414,7 @@ def preview_contract_template(template_id):
 @admin_bp.route("/workflow-config/contract-template/<int:template_id>/duplicate", methods=["POST"])
 @login_required
 def duplicate_contract_template(template_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = CSRFOnlyForm()
@@ -1406,7 +1446,7 @@ def duplicate_contract_template(template_id):
 @admin_bp.route("/workflow-config/contract-template/<int:template_id>/toggle-active", methods=["POST"])
 @login_required
 def toggle_contract_template(template_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = CSRFOnlyForm()
@@ -1424,7 +1464,7 @@ def toggle_contract_template(template_id):
 @admin_bp.route("/workflow-config/contract-template/<int:template_id>/delete", methods=["POST"])
 @login_required
 def delete_contract_template(template_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = CSRFOnlyForm()
@@ -1450,7 +1490,7 @@ def delete_contract_template(template_id):
 @admin_bp.route("/promissory-note-templates", methods=["GET"])
 @login_required
 def promissory_note_templates():
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     edit_template_id = request.args.get("edit_template_id", type=int)
@@ -1482,7 +1522,7 @@ def promissory_note_templates():
 @admin_bp.route("/workflow-config/promissory-note-template/add", methods=["POST"])
 @login_required
 def add_promissory_note_template():
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = PromissoryNoteTemplateForm()
@@ -1502,7 +1542,7 @@ def add_promissory_note_template():
 @admin_bp.route("/workflow-config/promissory-note-template/<int:template_id>/update", methods=["POST"])
 @login_required
 def update_promissory_note_template(template_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = PromissoryNoteTemplateForm()
@@ -1522,7 +1562,7 @@ def update_promissory_note_template(template_id):
 @admin_bp.route("/workflow-config/promissory-note-template/<int:template_id>/preview", methods=["GET"])
 @login_required
 def preview_promissory_note_template(template_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     template = ContractTemplate.query.filter_by(id=template_id, document_kind="promissory_note").first_or_404()
@@ -1538,7 +1578,7 @@ def preview_promissory_note_template(template_id):
 @admin_bp.route("/workflow-config/promissory-note-template/<int:template_id>/toggle-active", methods=["POST"])
 @login_required
 def toggle_promissory_note_template(template_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = CSRFOnlyForm()
@@ -1556,7 +1596,7 @@ def toggle_promissory_note_template(template_id):
 @admin_bp.route("/workflow-config/promissory-note-template/<int:template_id>/delete", methods=["POST"])
 @login_required
 def delete_promissory_note_template(template_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = CSRFOnlyForm()
@@ -1574,7 +1614,7 @@ def delete_promissory_note_template(template_id):
 @admin_bp.route("/workflow-config/company-preset/save", methods=["POST"])
 @login_required
 def save_company_preset():
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = CompanyPresetForm()
@@ -1611,7 +1651,7 @@ def save_company_preset():
 @admin_bp.route("/user/<int:user_id>/access", methods=["GET"])
 @login_required
 def user_access(user_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     user = User.query.get_or_404(user_id)
@@ -1634,7 +1674,7 @@ def user_access(user_id):
 @admin_bp.route("/user/<int:user_id>/access/roles", methods=["POST"])
 @login_required
 def save_user_roles(user_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = CSRFOnlyForm()
@@ -1660,7 +1700,7 @@ def save_user_roles(user_id):
 @admin_bp.route("/user/<int:user_id>/access/permissions", methods=["POST"])
 @login_required
 def save_user_permissions(user_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = CSRFOnlyForm()
@@ -1728,7 +1768,7 @@ LEGACY_ROLE_NAMES = {
 @admin_bp.route("/roles", methods=["GET"])
 @login_required
 def roles():
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     all_roles = Role.query.order_by(Role.name).all()
@@ -1750,7 +1790,7 @@ def roles():
 @admin_bp.route("/roles/add", methods=["POST"])
 @login_required
 def add_role():
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = RoleForm()
@@ -1777,7 +1817,7 @@ def add_role():
 @admin_bp.route("/roles/<int:role_id>/set-dashboard", methods=["POST"])
 @login_required
 def set_role_dashboard(role_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = CSRFOnlyForm()
@@ -1805,7 +1845,7 @@ def set_role_dashboard(role_id):
 @admin_bp.route("/roles/<int:role_id>/delete", methods=["POST"])
 @login_required
 def delete_role(role_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = CSRFOnlyForm()
@@ -1836,7 +1876,7 @@ def delete_role(role_id):
 @admin_bp.route("/roles/<int:role_id>/permissions", methods=["GET"])
 @login_required
 def role_permissions(role_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     role = Role.query.get_or_404(role_id)
@@ -1859,7 +1899,7 @@ def role_permissions(role_id):
 @admin_bp.route("/roles/<int:role_id>/permissions", methods=["POST"])
 @login_required
 def save_role_permissions(role_id):
-    if current_user.role != "SuperAdmin":
+    if not user_has_role(current_user, "SuperAdmin"):
         return "Forbidden", 403
 
     form = CSRFOnlyForm()

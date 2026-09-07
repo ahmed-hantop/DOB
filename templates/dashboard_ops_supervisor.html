@@ -41,10 +41,14 @@
 <div data-tab-panel="offboarding" class="tab-panel" hidden>
   <div class="driver-cards">
     {% for o in offboarding_requests %}
-    <div class="driver-card reveal" data-off-id="{{ o.id }}" data-off-name="{{ o.driver.name if o.driver else '' }}">
+    <div class="driver-card reveal{{ '' if o.status == 'OpsSupervisor' else ' driver-card-disabled' }}" data-off-id="{{ o.id }}" data-off-name="{{ o.driver.name if o.driver else '' }}" data-off-status="{{ o.status }}">
       <h3>{{ o.driver.name if o.driver else tr('Unknown driver', 'سائق غير معروف') }}</h3>
       <p>{{ tr('Iqama', 'الإقامة') }}: {{ o.driver.iqaama_number if o.driver else '' }}</p>
-      <p><span class="badge-soft warning">{{ o.status }}</span></p>
+      {% if o.status == 'OpsSupervisor' %}
+      <p><span class="badge-soft warning">{{ tr('Ready to Clear', 'جاهز للتصفية') }}</span></p>
+      {% else %}
+      <p><span class="badge-soft neutral">{{ tr('Awaiting Ops Manager Approval', 'بانتظار موافقة مدير العمليات') }}</span></p>
+      {% endif %}
     </div>
     {% else %}
     <p class="text-muted">{{ tr('No offboarding requests at this stage.', 'لا توجد طلبات خروج في هذه المرحلة.') }}</p>
@@ -192,6 +196,10 @@
 
   document.querySelectorAll('[data-tab-panel="offboarding"] .driver-card').forEach(function (card) {
     card.addEventListener('click', function () {
+      if (card.dataset.offStatus !== 'OpsSupervisor') {
+        DobsUI.toast({{ tr('This request is still awaiting Ops Manager approval and cannot be cleared yet.', 'هذا الطلب لا يزال بانتظار موافقة مدير العمليات ولا يمكن تصفيته الآن.') | tojson }}, 'warning');
+        return;
+      }
       currentOffId = card.dataset.offId;
       document.getElementById('offDriverTitle').textContent = ({{ tr('Clear Offboarding', 'تصفية الخروج') | tojson }}) + ' — ' + card.dataset.offName;
       DobsUI.openModal('offboardingModal');

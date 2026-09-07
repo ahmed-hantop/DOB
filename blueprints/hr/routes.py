@@ -14,7 +14,7 @@ import os
 import sqlalchemy as sa
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
-from utils.passwords import verify_password
+from utils.passwords import verify_password_hash
 from sqlalchemy.exc import IntegrityError
 
 hr_bp = Blueprint("hr", __name__, url_prefix='/hr')
@@ -104,12 +104,63 @@ def _require_completed_contract_access(fn):
         return fn(*args, **kwargs)
     return wrapper
 
-def _serialize_driver(d): 
-    return {
+def _driver_assigned_platforms(driver_id):
+    """Distinct platforms (businesses) this driver holds an active platform ID
+    for -- via driver_business_ids -> business_ids -> businesses. Used to drive
+    the per-platform Shirt/Bag checkboxes at HR Final."""
+    from models import DriverBusinessIDS, BusinessID, Business
+    rows = (
+        db.session.query(Business.id, Business.name)
+        .join(BusinessID, BusinessID.business_id == Business.id)
+        .join(DriverBusinessIDS, DriverBusinessIDS.business_id_id == BusinessID.id)
+        .filter(DriverBusinessIDS.driver_id == driver_id)
+        .filter(DriverBusinessIDS.transferred_at.is_(None))
+        .distinct()
+        .all()
+    )
+    return [{"id": r[0], "name": r[1]} for r in rows]
+
+
+def _apply_hr_final_kit(driver):
+    """HR Final: read the per-platform Shirt/Bag + Driver Card checkboxes from
+    request.form, write issuances + decrement stock. Shirt+Bag are required
+    for every assigned platform. Returns None on success, or an error string
+    (nothing written). Does NOT commit -- the caller does."""
+    from services.inventory_service import issue_kit_at_hr_final
+    try:
+        platforms = _driver_assigned_platforms(driver.id)
+        issuer_name = getattr(current_user, "name", None) or getattr(current_user, "username", None)
+        return issue_kit_at_hr_final(driver, platforms, request.form, current_user.id, issuer_name)
+    except Exception as e:
+        # Never let a stock-bookkeeping problem 500 the HR Final action --
+        # roll back the half-built issuance and surface it as a blocking
+        # message the HR user can retry past.
+        db.session.rollback()
+        current_app.logger.exception("HR Final kit issuance failed for driver_id=%s", driver.id)
+        return f"Could not record the driver kit ({e}). Nothing was saved — please try again."
+
+
+def _driver_bank_prefill(driver_id):
+    """bank_name / account_number / stc_pay_number for the HR approve modal."""
+    from models import DriverBankAccount
+    out = {"bank_name": None, "account_number": None, "stc_pay_number": None}
+    rows = DriverBankAccount.query.filter_by(driver_id=driver_id).filter(DriverBankAccount.deleted_at.is_(None)).all()
+    for r in rows:
+        if r.account_type == DriverBankAccount.TYPE_STC_PAY:
+            out["stc_pay_number"] = r.stc_pay_number
+        else:
+            out["bank_name"] = r.bank_name
+            out["account_number"] = r.account_number
+    return out
+
+
+def _serialize_driver(d, with_onboarding_extras=False):
+    payload = {
         "id": d.id,
         "driver_id": d.driver_id,
         "driver_type_id": d.driver_type_id,
         "name": d.name,
+        "address": getattr(d, "address", None),
         "iqaama_number": d.iqaama_number,
         "iqaama_expiry": d.iqaama_expiry.isoformat() if d.iqaama_expiry else None,
         "nationality": d.nationality,
@@ -150,6 +201,18 @@ def _serialize_driver(d):
         "generate_contract_pack_url": url_for("hr.generate_contract_pack_completed", driver_id=d.id),
         "upload_signed_promissory_url": url_for("hr.upload_signed_promissory_note", driver_id=d.id),
     }
+
+    # The bank prefill + assigned-platforms lookups are 2 extra queries per
+    # driver -- only worth running for the small onboarding list (whose cards
+    # open the HR / HR Final modals), never for the full Completed tab.
+    if with_onboarding_extras:
+        _bank = _driver_bank_prefill(d.id)
+        payload["bank_name"] = _bank["bank_name"]
+        payload["account_number"] = _bank["account_number"]
+        payload["stc_pay_number"] = _bank["stc_pay_number"]
+        payload["assigned_platforms"] = _driver_assigned_platforms(d.id)
+
+    return payload
 
 
 def _next_driver_code():
@@ -313,7 +376,7 @@ def dashboard_hr():
 
     return render_template(
         "dashboard_hr.html",
-        drivers=[_serialize_driver(d) for d in onboarding_drivers],
+        drivers=[_serialize_driver(d, with_onboarding_extras=True) for d in onboarding_drivers],
         completed_onboarded_drivers=completed_onboarded_drivers,
         rejected_drivers=rejected_drivers,
         offboarding_hr=[_serialize_offboarding(o) for o in offboarding_hr],
@@ -603,6 +666,19 @@ def approve_driver(driver_id):
             flash(f"{label} is required before HR can approve this driver.", "danger")
             return redirect(url_for("hr.dashboard_hr"))
 
+    # Bank details are captured (and mandatory) at this first HR pass -- one
+    # bank account + one STC Pay number -- and written to the shared
+    # driver_bank_accounts table that DMS reads.
+    required_bank = {
+        "bank_name": "Bank name",
+        "account_number": "IBAN / account number",
+        "stc_pay_number": "STC Pay number",
+    }
+    for field_name, label in required_bank.items():
+        if not (request.form.get(field_name) or "").strip():
+            flash(f"{label} is required before HR can approve this driver.", "danger")
+            return redirect(url_for("hr.dashboard_hr"))
+
     try:
         process_hr_approval(driver, files, request.form, _upload_root(), max_bytes, db=db, uploaded_by_id=current_user.id)
         _ensure_driver_password(driver)
@@ -754,6 +830,11 @@ def complete_sponsorship_transfer(driver_id):
         flash(f"Driver is not in HR Final stage (current: {driver.onboarding_stage}).", "warning")
         return redirect(url_for("hr.dashboard_hr"))
 
+    kit_error = _apply_hr_final_kit(driver)
+    if kit_error:
+        flash(kit_error, "danger")
+        return redirect(url_for("hr.dashboard_hr"))
+
     try:
         completed_at = datetime.utcnow()
 
@@ -888,6 +969,14 @@ def complete_driver(driver_id):
 
     # Only for drivers without a Qiwa contract
     if not driver.qiwa_contract_created:
+        # Kit issuance runs only on the path that actually completes the
+        # driver and commits -- the else branch below is a no-op, so calling
+        # _apply_hr_final_kit there would leave orphaned pending session rows.
+        kit_error = _apply_hr_final_kit(driver)
+        if kit_error:
+            flash(kit_error, "danger")
+            return redirect(url_for("hr.dashboard_hr"))
+
         completed_at = datetime.utcnow()
         driver.mark_completed_onboarding(completed_at)
         _ensure_driver_code(driver)
@@ -917,7 +1006,7 @@ def change_password():
     new_password = request.form["new_password"]
     confirm_password = request.form["confirm_password"]
 
-    if not verify_password(current_user.password, current_password):
+    if not verify_password_hash(current_user.password, current_password):
         flash("Current password is incorrect.", "danger")
         return redirect(url_for("hr.dashboard_hr"))
 

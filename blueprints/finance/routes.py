@@ -5,7 +5,6 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
-from utils.passwords import verify_password
 from flask_mail import Message
 from sqlalchemy import exists
 from sqlalchemy import or_
@@ -15,6 +14,7 @@ from services.file_storage import save_to_shared_storage
 from services import onboarding_workflow, dms_payroll
 from services.rbac import require_permission, user_can_access_dashboard, user_has_permission
 from utils.email_utils import send_password_change_email, safe_send_email
+from utils.passwords import verify_password_hash
 from flask_wtf.csrf import validate_csrf, CSRFError
 from forms.common import (
     CSRFOnlyForm,
@@ -213,14 +213,11 @@ def approve_driver(driver_id):
     amount = form.transfer_fee_amount.data
     driver.transfer_fee_amount = float(amount) if amount else None
 
-    # Validate payment date
+    # Validate payment date. Browser datetime-local inputs may include seconds.
     paid_at_str = form.transfer_fee_paid_at.data
     if paid_at_str:
         try:
-            if "T" in paid_at_str:
-                paid_at = datetime.strptime(paid_at_str, "%Y-%m-%dT%H:%M")
-            else:
-                paid_at = datetime.strptime(paid_at_str, "%Y-%m-%d")
+            paid_at = datetime.fromisoformat(paid_at_str.strip())
 
             if paid_at.date() > date.today():
                 flash("❌ Transfer fee payment date cannot be in the future.", "danger")
@@ -280,7 +277,7 @@ def approve_driver(driver_id):
 
     # Mark driver as finance approved
     driver.transfer_fee_paid = True
-    driver.transfer_fee_paid_at = datetime.utcnow()
+    driver.transfer_fee_paid_at = driver.transfer_fee_paid_at or datetime.utcnow()
     driver.finance_approved_at = datetime.utcnow()
     onboarding_workflow.advance(driver, from_stage="Finance")
 
@@ -412,7 +409,7 @@ def change_password():
     new_password = form.new_password.data
     confirm_password = form.confirm_password.data
 
-    if not verify_password(current_user.password, form.current_password.data):
+    if not verify_password_hash(current_user.password, form.current_password.data):
         flash("Current password is incorrect.", "danger")
         return redirect(url_for("finance.dashboard_finance"))
 

@@ -6,11 +6,11 @@ from flask_mail import Message
 from datetime import datetime, date
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
-from utils.passwords import verify_password
 from sqlalchemy.orm import joinedload
 from sqlalchemy import or_
 from models import Offboarding, Driver, User, Vehicle, AssignDriver, AssignDriverReport
 from utils.email_utils import send_password_change_email
+from utils.passwords import verify_password_hash
 import os
 from flask_wtf.csrf import validate_csrf, CSRFError
 from forms.common import CSRFOnlyForm, ChangePasswordForm, FleetAssignForm, FleetOffboardingForm
@@ -560,7 +560,7 @@ def change_password():
     new_password = form.new_password.data
     confirm_password = form.confirm_password.data
 
-    if not verify_password(current_user.password, form.current_password.data):
+    if not verify_password_hash(current_user.password, form.current_password.data):
         flash("Current password is incorrect.", "danger")
         return redirect(url_for("fleet.dashboard_fleet"))
 

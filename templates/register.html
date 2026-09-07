@@ -117,6 +117,10 @@
                   </select>
                 </div>
                 <div class="dobs-field-group">
+                  <label class="dobs-label" for="address">{{ 'Address (optional)' if not is_ar else 'العنوان (اختياري)' }}</label>
+                  <textarea class="dobs-input" id="address" name="address" rows="2" maxlength="1000"></textarea>
+                </div>
+                <div class="dobs-field-group">
                   <label class="dobs-label" for="city">{{ 'City' if not is_ar else 'المدينة' }}</label>
                   <select class="dobs-input" id="city" name="city">
                     {% include 'includes/public_register_city_options.html' %}
