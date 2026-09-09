@@ -929,6 +929,7 @@ class DriverInventoryIssuance(db.Model):
     SOURCE_DOBS_HR_FINAL = "dobs_hr_final"
 
     id = db.Column(db.BigInteger, primary_key=True)
+    handover_id = db.Column(db.BigInteger, db.ForeignKey("driver_inventory_handovers.id"), nullable=True, index=True)
     driver_id = db.Column(db.Integer, db.ForeignKey("drivers.id"), nullable=True, index=True)
     inventory_item_id = db.Column(db.BigInteger, db.ForeignKey("inventory_items.id"), nullable=False)
     quantity = db.Column(db.Integer, default=1, nullable=False)
@@ -950,6 +951,41 @@ class DriverInventoryIssuance(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 
     item = db.relationship("InventoryItem")
+    handover = db.relationship("DriverInventoryHandover", back_populates="issuances")
 
     def __repr__(self):
         return f"<DriverInventoryIssuance driver={self.driver_id} item={self.inventory_item_id} qty={self.quantity}>"
+
+
+class DriverInventoryHandover(db.Model):
+    """One driver-kit handover event (Shirt + Bag + Driver Card together).
+    Groups driver_inventory_issuances rows so they can be printed as one
+    signed acknowledgement. Physical table owned by DMS migration
+    2026_09_07_230000; this model just lets DOBS write to it at HR Final.
+    """
+    __tablename__ = "driver_inventory_handovers"
+
+    SOURCE_DMS = "dms"
+    SOURCE_DOBS_HR_FINAL = "dobs_hr_final"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    handover_number = db.Column(db.String(30), nullable=True, unique=True)
+    driver_id = db.Column(db.Integer, db.ForeignKey("drivers.id"), nullable=False)
+    # dual-app: a users.id from DMS, a dobs_user.id from DOBS -- not FK'd.
+    issued_by = db.Column(db.Integer, nullable=True)
+    issued_by_name = db.Column(db.String(150), nullable=True)
+    issued_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    source = db.Column(db.String(20), default=SOURCE_DMS, nullable=False)
+    notes = db.Column(db.Text, nullable=True)
+    pdf_token = db.Column(db.String(64), nullable=True, unique=True)
+    signed_at = db.Column(db.DateTime, nullable=True)
+    signed_recorded_by = db.Column(db.Integer, nullable=True)
+    deleted_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
+
+    driver = db.relationship("Driver")
+    issuances = db.relationship("DriverInventoryIssuance", back_populates="handover")
+
+    def __repr__(self):
+        return f"<DriverInventoryHandover {self.handover_number} driver={self.driver_id}>"

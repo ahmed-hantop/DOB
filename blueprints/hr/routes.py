@@ -123,9 +123,10 @@ def _driver_assigned_platforms(driver_id):
 
 def _apply_hr_final_kit(driver):
     """HR Final: read the per-platform Shirt/Bag + Driver Card checkboxes from
-    request.form, write issuances + decrement stock. Shirt+Bag are required
-    for every assigned platform. Returns None on success, or an error string
-    (nothing written). Does NOT commit -- the caller does."""
+    request.form, write issuances + decrement stock, grouped as one handover.
+    Shirt+Bag are required for every assigned platform. Returns
+    (error, handover_token): error is None on success (token is the signed-PDF
+    token, or None if everything was already issued). Does NOT commit."""
     from services.inventory_service import issue_kit_at_hr_final
     try:
         platforms = _driver_assigned_platforms(driver.id)
@@ -137,7 +138,16 @@ def _apply_hr_final_kit(driver):
         # message the HR user can retry past.
         db.session.rollback()
         current_app.logger.exception("HR Final kit issuance failed for driver_id=%s", driver.id)
-        return f"Could not record the driver kit ({e}). Nothing was saved — please try again."
+        return (f"Could not record the driver kit ({e}). Nothing was saved — please try again.", None)
+
+
+def _flash_kit_handover_link(token):
+    if token:
+        flash(
+            "Driver kit handover recorded. Print it for the driver's signature: "
+            f"https://dms.speedlogi.sa/dms/driver-inventory/handover/{token}",
+            "info",
+        )
 
 
 def _driver_bank_prefill(driver_id):
@@ -830,7 +840,7 @@ def complete_sponsorship_transfer(driver_id):
         flash(f"Driver is not in HR Final stage (current: {driver.onboarding_stage}).", "warning")
         return redirect(url_for("hr.dashboard_hr"))
 
-    kit_error = _apply_hr_final_kit(driver)
+    kit_error, kit_token = _apply_hr_final_kit(driver)
     if kit_error:
         flash(kit_error, "danger")
         return redirect(url_for("hr.dashboard_hr"))
@@ -877,6 +887,8 @@ def complete_sponsorship_transfer(driver_id):
                 db.session.rollback()
                 flash(f"Error completing transfer: {e}", "danger")
                 return redirect(url_for("hr.dashboard_hr"))
+
+        _flash_kit_handover_link(kit_token)
 
         # 📧 Notify SuperAdmins after completion
         superadmins = User.query.filter_by(role="SuperAdmin").all()
@@ -972,7 +984,7 @@ def complete_driver(driver_id):
         # Kit issuance runs only on the path that actually completes the
         # driver and commits -- the else branch below is a no-op, so calling
         # _apply_hr_final_kit there would leave orphaned pending session rows.
-        kit_error = _apply_hr_final_kit(driver)
+        kit_error, kit_token = _apply_hr_final_kit(driver)
         if kit_error:
             flash(kit_error, "danger")
             return redirect(url_for("hr.dashboard_hr"))
@@ -986,6 +998,7 @@ def complete_driver(driver_id):
         driver.sponsorship_transfer_completed_at = completed_at
         _generate_driver_contracts_safe(driver, uploaded_by_id=current_user.id)
         db.session.commit()
+        _flash_kit_handover_link(kit_token)
         flash(f"✅ Driver {driver.name} marked as completed (no Qiwa contract).", "success")
     else:
         flash(f"⚠️ Driver {driver.name} has a Qiwa contract. Use normal transfer workflow.", "warning")
